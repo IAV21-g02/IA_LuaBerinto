@@ -32,7 +32,7 @@ public class Casilla : MonoBehaviour
     public void Init(Muro prefab, Index myIndex_)
     {
         myIndex = myIndex_;
-        GetComponentInChildren<TextMesh>().text = "[" + myIndex.x + " , " + myIndex.y + "]";
+        //GetComponentInChildren<TextMesh>().text = "[" + myIndex.x + " , " + myIndex.y + "]";
 
         muroNorte = Instantiate(prefab, transform);
         muroNorte.Orienta(Orientacion.NORTE);

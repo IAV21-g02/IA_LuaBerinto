@@ -521,5 +521,10 @@ public class LaberintoManager : MonoBehaviour
         return adj;
     }
 
+    public Vector3 getPosJugador()
+    {
+        return jugador.transform.position;
+    }
+
 
 }
