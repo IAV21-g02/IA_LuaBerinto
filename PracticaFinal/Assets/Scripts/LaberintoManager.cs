@@ -25,20 +25,18 @@ public class LaberintoManager : MonoBehaviour
     private Casilla[,] casillas;
     //  Jugador
     private Jugador jugador;
-
-
-
-    [SerializeField]
+    //  Caras superiores de los objetos que funcionaran como navMeshArea
     private List<NavMeshSurface> surfaces;
-
+    //  Obstáculos (aka muros)
     private List<NavMeshObstacle> obstacles;
-
+    //  Objetos que hay que recoger con la IA
     private List<ObjetivoBehaviour> objetivos;
-
-    //
+    //  Ancho de la superficie de navegacion
     private float limX;
+    //  Largo de la superficie de navegacion
     private float limZ;
-
+    //  Posicion inicial desde la que se empieza a crear el laberinto
+    private Vector3 initPos = Vector3.zero;
 
     [Tooltip("Filas que componen este laberinto")]
     public int filas;
@@ -56,6 +54,8 @@ public class LaberintoManager : MonoBehaviour
     public float baseX = 2;
     [Tooltip("Coprimo Halton Y")]
     public float baseY = 3;
+    [Tooltip("Número de objetos a obtener y llevar a su respectivo NPC")]
+    public int numPremios = 10;
 
     private void Awake()
     {
@@ -71,17 +71,17 @@ public class LaberintoManager : MonoBehaviour
 
     void Start()
     {
+        //Inicializacion de matrices y listas
         casillas = new Casilla[filas, columnas];
         surfaces = new List<NavMeshSurface>();
         obstacles = new List<NavMeshObstacle>();
         objetivos = new List<ObjetivoBehaviour>();
+
+        //Inicializacion de variables necesarias para la secuencia de Halton
+        limX = (filas * getAnchuraCasilla());
+        limZ = (columnas * getProfundidadCasilla());
+
         ConstruyeLaberinto();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 
     //  Devuelve la instancia de este singleton
@@ -94,7 +94,7 @@ public class LaberintoManager : MonoBehaviour
     private void ConstruyeLaberinto()
     {
         Transform actCasillaTr = casillaPrefab.transform;
-        Vector3 initPos = Vector3.zero;
+        
         actCasillaTr.position = initPos;
         for (int actFila = 0; actFila < filas; actFila++)
         {
@@ -187,11 +187,6 @@ public class LaberintoManager : MonoBehaviour
         {
             s.BuildNavMesh();
         }
-
-        //foreach (NavMeshObstacle ob in obstacles)
-        //{
-        //    //ob.
-        //}
     }
 
     //Asigna los accesos de los muros 
@@ -217,37 +212,16 @@ public class LaberintoManager : MonoBehaviour
         jugador.GetComponent<NavMeshAgent>().SetDestination(casillas[filas - 1, columnas - 1].transform.position);
     }
 
-    //  TODO
     //  Instancia los objetivos sobre el laberinto usando el algoritmo de Halton
     private void instanciaObjetivos()
     {
-        int numPremios = filas / 3;
         int cont = 0;
 
         while (cont < numPremios)
         {
-            int x = Random.Range(0, columnas);
-            int y = Random.Range(0, filas);
-            if (casillas[x, y].getObjetivo() == null)
-            {
-                Vector3 pos = casillas[x, y].transform.position;
-                pos.y = 0.5f;
-                casillas[x, y].setCasillaConObjetivo(Instantiate(objetivoPrefab, pos, Quaternion.identity));
-                cont++;
-            }
+            Halton2d(baseX, baseY, cont + 1);
+            cont++;
         }
-
-
-
-        //limX = (filas * getAnchuraCasilla() + casillas[0, 0].transform.position.x) /*/ 10*/;
-        //limZ = (columnas * getProfundidadCasilla() + casillas[0, casillas.GetLength(0) - 1].transform.position.z) /*/ 10*/;
-        //Debug.Log(casillas[0, 0].transform.position.x);
-        //Debug.Log(casillas[casillas.GetLength(0) - 1, 0].transform.position.z);
-        //while (cont < numPremios)
-        //{
-        //    Halton2d(baseX, baseY, cont + 1);
-        //    cont++;
-        //}
     }
 
     //  Devuelve los index dentro de casillas de una casilla
@@ -490,7 +464,6 @@ public class LaberintoManager : MonoBehaviour
         jugadorPos.x = tr.transform.position.x;
         jugadorPos.y = 0.5f;
         jugadorPos.z = tr.transform.position.z;
-        //jugadorPos.y += 0.5;
         jugador = Instantiate(jugadorPrefab, jugadorPos, Quaternion.identity);
     }
 
@@ -499,17 +472,16 @@ public class LaberintoManager : MonoBehaviour
     /// </summary>
     private void Halton2d(float baseX, float baseY, float index)
     {
-        float x = Halton(baseX, index);
-        float z = Halton(baseY, index);
+
         //Ajuste para pasar del rango [0,1] a las coordenadas reales del suelo
-        float posX = -limX + (x * limX * 2);
-        float posZ = -limZ + (z * limZ * 2);
+        float posX = initPos.x + (adjustHaltonToGrid(Halton(baseX, index), columnas) * limX);
+        float posZ = initPos.z + (adjustHaltonToGrid(Halton(baseY, index), filas) * limZ);
+
+        //Creamos el objeto que nos servirá como prefab
         GameObject objeto = Instantiate(objetivoPrefab, new Vector3(posX, 0.5f, posZ), Quaternion.identity, transform).gameObject;
+        
+        //Lo añadimos a la lista de objetivos
         objetivos.Add(objeto.GetComponent<ObjetivoBehaviour>());
-        //tamaño random del objeto
-        //float sizeX = Random.Range(0.5f, 2.5f);
-        //float sizeZ = Random.Range(0.5f, 2.5f);
-        //objeto.transform.localScale = new Vector3(sizeX, 3, sizeZ);
     }
 
 
@@ -529,6 +501,24 @@ public class LaberintoManager : MonoBehaviour
             index = Mathf.Floor(index / b);
         }
         return result;
+    }
+
+    /// <summary>
+    /// Metodo para centrar en las casillas los objetos pickables que creemos
+    /// </summary>
+    private float adjustHaltonToGrid(float haltonResult, int maxDivisions)
+    {
+        float adj = 0.0f;
+        float divPercentage = 1.0f / maxDivisions;
+
+        while(divPercentage / 2 < haltonResult - adj)
+        {
+            adj += divPercentage;
+        }
+
+        //if (divPercentage / 2 > haltonResult - adj) adj += divPercentage;
+
+        return adj;
     }
 
 
