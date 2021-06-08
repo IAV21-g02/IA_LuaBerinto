@@ -26,10 +26,18 @@ public class LaberintoManager : MonoBehaviour
     //  Jugador
     private Jugador jugador;
 
+
+
     [SerializeField]
     private List<NavMeshSurface> surfaces;
 
     private List<NavMeshObstacle> obstacles;
+
+    private List<ObjetivoBehaviour> objetivos;
+
+    //
+    private float limX;
+    private float limZ;
 
 
     [Tooltip("Filas que componen este laberinto")]
@@ -42,6 +50,12 @@ public class LaberintoManager : MonoBehaviour
     public Muro muroPrefab;
     [Tooltip("Prefab usado para generar al jugador")]
     public Jugador jugadorPrefab;
+    [Tooltip("Prefab usado para generar objetivos sobre el laberinto")]
+    public ObjetivoBehaviour objetivoPrefab;
+    [Tooltip("Coprimo Halton X")]
+    public float baseX = 2;
+    [Tooltip("Coprimo Halton Y")]
+    public float baseY = 3;
 
     private void Awake()
     {
@@ -60,6 +74,7 @@ public class LaberintoManager : MonoBehaviour
         casillas = new Casilla[filas, columnas];
         surfaces = new List<NavMeshSurface>();
         obstacles = new List<NavMeshObstacle>();
+        objetivos = new List<ObjetivoBehaviour>();
         ConstruyeLaberinto();
     }
 
@@ -80,13 +95,6 @@ public class LaberintoManager : MonoBehaviour
     {
         Transform actCasillaTr = casillaPrefab.transform;
         Vector3 initPos = Vector3.zero;
-        initPos.x = (-actCasillaTr.localScale.x + (muroPrefab.transform.localScale.x)) * (columnas / 2);
-        initPos.y = 0;
-        initPos.z = -actCasillaTr.localScale.z * (filas / 2);
-
-        //  TO DO
-        initPos = Vector3.zero;
-
         actCasillaTr.position = initPos;
         for (int actFila = 0; actFila < filas; actFila++)
         {
@@ -98,7 +106,7 @@ public class LaberintoManager : MonoBehaviour
 
                 casillas[actFila, actCol] = actCasilla;
 
-                actCasillaTr.position = new Vector3(actCasillaTr.position.x + actCasillaTr.localScale.x, 0, actCasillaTr.position.z);
+                actCasilla.transform.position = new Vector3(actCasillaTr.localScale.x * actCol + initPos.x, 0, actCasillaTr.localScale.z * actFila + initPos.z);
 
                 if (actCol == 0)
                 {
@@ -135,7 +143,6 @@ public class LaberintoManager : MonoBehaviour
                     actCasilla.muroNorte.setMuroExterior();
                 }
             }
-            actCasillaTr.position = new Vector3((-actCasillaTr.localScale.x + (muroPrefab.transform.localScale.x)) * (columnas / 2), 0, actCasillaTr.position.z + actCasillaTr.localScale.z);
         }
         asignaAccesos();
         GeneraLaberinto();
@@ -148,26 +155,31 @@ public class LaberintoManager : MonoBehaviour
         {
             surfaces.Add(casilla.GetComponent<NavMeshSurface>());
 
-            //Muro currMuro = casilla.muroNorte;
-            //if (currMuro != null && !currMuro.estaAbierto()) 
-            //{
-            //    obstacles.Add(currMuro.GetComponent<NavMeshObstacle>());
-            //}
-            //currMuro = casilla.muroEste;
-            //if (currMuro != null && !currMuro.estaAbierto())
-            //{
-            //    obstacles.Add(currMuro.GetComponent<NavMeshObstacle>());
-            //}
-            //currMuro = casilla.muroSur;
-            //if (currMuro != null && !currMuro.estaAbierto())
-            //{
-            //    obstacles.Add(currMuro.GetComponent<NavMeshObstacle>());
-            //}
-            //currMuro = casilla.muroOeste;
-            //if (currMuro != null && !currMuro.estaAbierto())
-            //{
-            //    obstacles.Add(currMuro.GetComponent<NavMeshObstacle>());
-            //}
+            Muro currMuro = casilla.muroNorte;
+            if (currMuro != null && !currMuro.estaAbierto())
+            {
+                obstacles.Add(currMuro.GetComponent<NavMeshObstacle>());
+            }
+            currMuro = casilla.muroEste;
+            if (currMuro != null && !currMuro.estaAbierto())
+            {
+                obstacles.Add(currMuro.GetComponent<NavMeshObstacle>());
+            }
+            currMuro = casilla.muroSur;
+            if (currMuro != null && !currMuro.estaAbierto())
+            {
+                obstacles.Add(currMuro.GetComponent<NavMeshObstacle>());
+            }
+            currMuro = casilla.muroOeste;
+            if (currMuro != null && !currMuro.estaAbierto())
+            {
+                obstacles.Add(currMuro.GetComponent<NavMeshObstacle>());
+            }
+        }
+
+        foreach (NavMeshObstacle ob in obstacles)
+        {
+            ob.enabled = true;
         }
 
 
@@ -199,8 +211,43 @@ public class LaberintoManager : MonoBehaviour
         //  TO DO Elegir una casilla externa como inicial
         Casilla actCasilla = casillas[0, 0];
         CreaCamino(casillas[0, 0], visitado);
-        bakeInRunTime();
         instanciaJugador(actCasilla.transform);
+        instanciaObjetivos();
+        bakeInRunTime();
+        jugador.GetComponent<NavMeshAgent>().SetDestination(casillas[filas - 1, columnas - 1].transform.position);
+    }
+
+    //  TODO
+    //  Instancia los objetivos sobre el laberinto usando el algoritmo de Halton
+    private void instanciaObjetivos()
+    {
+        int numPremios = filas / 3;
+        int cont = 0;
+
+        while (cont < numPremios)
+        {
+            int x = Random.Range(0, columnas);
+            int y = Random.Range(0, filas);
+            if (casillas[x, y].getObjetivo() == null)
+            {
+                Vector3 pos = casillas[x, y].transform.position;
+                pos.y = 0.5f;
+                casillas[x, y].setCasillaConObjetivo(Instantiate(objetivoPrefab, pos, Quaternion.identity));
+                cont++;
+            }
+        }
+
+
+
+        //limX = (filas * getAnchuraCasilla() + casillas[0, 0].transform.position.x) /*/ 10*/;
+        //limZ = (columnas * getProfundidadCasilla() + casillas[0, casillas.GetLength(0) - 1].transform.position.z) /*/ 10*/;
+        //Debug.Log(casillas[0, 0].transform.position.x);
+        //Debug.Log(casillas[casillas.GetLength(0) - 1, 0].transform.position.z);
+        //while (cont < numPremios)
+        //{
+        //    Halton2d(baseX, baseY, cont + 1);
+        //    cont++;
+        //}
     }
 
     //  Devuelve los index dentro de casillas de una casilla
@@ -332,12 +379,12 @@ public class LaberintoManager : MonoBehaviour
 
     public float getAnchuraCasilla()
     {
-        return casillaPrefab.transform.lossyScale.x;
+        return casillaPrefab.GetComponent<Renderer>().bounds.size.x;
     }
 
     public float getProfundidadCasilla()
     {
-        return casillaPrefab.transform.localScale.z;
+        return casillaPrefab.GetComponent<Renderer>().bounds.size.z;
     }
 
     public Casilla getCasillaByIndex(int indx, int indy)
@@ -446,5 +493,43 @@ public class LaberintoManager : MonoBehaviour
         //jugadorPos.y += 0.5;
         jugador = Instantiate(jugadorPrefab, jugadorPos, Quaternion.identity);
     }
+
+    /// <summary>
+    /// Generador del mapa de Halton
+    /// </summary>
+    private void Halton2d(float baseX, float baseY, float index)
+    {
+        float x = Halton(baseX, index);
+        float z = Halton(baseY, index);
+        //Ajuste para pasar del rango [0,1] a las coordenadas reales del suelo
+        float posX = -limX + (x * limX * 2);
+        float posZ = -limZ + (z * limZ * 2);
+        GameObject objeto = Instantiate(objetivoPrefab, new Vector3(posX, 0.5f, posZ), Quaternion.identity, transform).gameObject;
+        objetivos.Add(objeto.GetComponent<ObjetivoBehaviour>());
+        //tamaño random del objeto
+        //float sizeX = Random.Range(0.5f, 2.5f);
+        //float sizeZ = Random.Range(0.5f, 2.5f);
+        //objeto.transform.localScale = new Vector3(sizeX, 3, sizeZ);
+    }
+
+
+    /// <summary>
+    /// Metodo que dada una base y el indice del objeto
+    /// en la secuencia de halton devuelve su valor correspondiente entr 0 y 1
+    /// </summary>
+    private float Halton(float b, float index)
+    {
+        float result = 0;
+        float denominator = 1;
+
+        while (index > 0)
+        {
+            denominator *= b;
+            result += (index % b) / denominator;
+            index = Mathf.Floor(index / b);
+        }
+        return result;
+    }
+
 
 }

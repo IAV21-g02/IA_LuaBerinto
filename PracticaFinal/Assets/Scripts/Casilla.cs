@@ -18,6 +18,9 @@ public class Casilla : MonoBehaviour
 
     private List<Muro> murosActivos;
 
+    //  Objetivo que puede tener esta casilla
+    private ObjetivoBehaviour objetivo;
+
     public Casilla()
     {
         muroNorte = new Muro();
@@ -47,6 +50,7 @@ public class Casilla : MonoBehaviour
     void Start()
     {
         murosActivos = new List<Muro>();
+        objetivo = null;
     }
 
     // Update is called once per frame
@@ -112,6 +116,16 @@ public class Casilla : MonoBehaviour
             muroOeste.setCasillaAcesso(actCasilla);
         }
         else muroOeste.setCasillaAcesso(null);
+    }
+
+    public void setCasillaConObjetivo(ObjetivoBehaviour obj)
+    {
+        objetivo = obj;
+    }
+
+    public ObjetivoBehaviour getObjetivo()
+    {
+        return objetivo;
     }
 
 }

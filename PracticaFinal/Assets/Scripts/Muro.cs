@@ -68,9 +68,7 @@ public class Muro : MonoBehaviour
     {
         if (!inamovible)
         {
-            abierto = true;
-            GetComponent<Renderer>().enabled = false;
-            GetComponent<Collider>().enabled = false;
+            Destroy(this.gameObject);
         }
     }
 
