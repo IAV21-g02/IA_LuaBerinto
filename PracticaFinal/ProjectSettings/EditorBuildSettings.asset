@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 0
-    path: Assets/RTS/Scene/RTSScenario.unity
+    path: 
     guid: ff64c446f5c3ff04d9103df9ece8f0ff
+  - enabled: 1
+    path: Assets/Scenes/MainScene.unity
+    guid: 196f6a36587118a409a2a07d7f41eb9e
   m_configObjects: {}

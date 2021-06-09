@@ -21,12 +21,6 @@ public class Jugador : MonoBehaviour
         npcConocidos = new List<NPC>();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
     //  Agrega un objeto a la lista de objetos que conozco
     public void actualizaConocimientos(ObjetivoBehaviour obj)
     {

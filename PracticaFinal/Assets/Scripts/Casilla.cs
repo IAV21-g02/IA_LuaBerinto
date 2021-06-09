@@ -53,12 +53,6 @@ public class Casilla : MonoBehaviour
         objetivo = null;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
     public Muro getMuroPorOrientacion(int m)
     {
         Muro currMuro = null;
@@ -126,6 +120,15 @@ public class Casilla : MonoBehaviour
     public ObjetivoBehaviour getObjetivo()
     {
         return objetivo;
+    }
+
+    public void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Jugador"))
+        {
+            LaberintoManager.instance.getGrafoLaberinto().nodes[myIndex].visited = true;
+            Debug.Log("Visitada casilla con indice: " + myIndex.x + " , " + myIndex.y);
+        }
     }
 
 }

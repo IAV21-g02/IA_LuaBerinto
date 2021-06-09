@@ -37,6 +37,8 @@ public class LaberintoManager : MonoBehaviour
     private float limZ;
     //  Posicion inicial desde la que se empieza a crear el laberinto
     private Vector3 initPos = Vector3.zero;
+    //  Grafo que representa el laberinto para mover al player
+    private Graph grafoLaberinto;
 
     [Tooltip("Filas que componen este laberinto")]
     public int filas;
@@ -94,7 +96,7 @@ public class LaberintoManager : MonoBehaviour
     private void ConstruyeLaberinto()
     {
         Transform actCasillaTr = casillaPrefab.transform;
-        
+
         actCasillaTr.position = initPos;
         for (int actFila = 0; actFila < filas; actFila++)
         {
@@ -187,6 +189,22 @@ public class LaberintoManager : MonoBehaviour
         {
             s.BuildNavMesh();
         }
+
+        //Prueba
+        //casillas[5, 6].gameObject.GetComponent<NavMeshModifier>().area = NavMesh.GetAreaFromName("Not Walkable");
+        //casillas[5, 6].gameObject.GetComponent<Renderer>().material.color = Color.white;
+        //casillas[5, 6].gameObject.GetComponent<NavMeshSurface>().defaultArea = NavMesh.GetAreaFromName("Not Walkable");
+
+        //NavMeshSurface a = casillas[5, 6].gameObject.GetComponent<NavMeshSurface>();
+        //a.UpdateNavMesh(a.navMeshData);
+
+        //casillas[6, 5].gameObject.GetComponent<NavMeshModifier>().area = NavMesh.GetAreaFromName("Not Walkable");
+        //casillas[6, 5].gameObject.GetComponent<Renderer>().material.color = Color.white;
+        //casillas[6, 5].gameObject.GetComponent<NavMeshSurface>().defaultArea = NavMesh.GetAreaFromName("Not Walkable");
+        //casillas[6, 5].gameObject.GetComponent<NavMeshSurface>().BuildNavMesh();
+
+        //a = casillas[6,5].gameObject.GetComponent<NavMeshSurface>();
+        //a.UpdateNavMesh(a.navMeshData);
     }
 
     //Asigna los accesos de los muros 
@@ -207,8 +225,11 @@ public class LaberintoManager : MonoBehaviour
         Casilla actCasilla = casillas[0, 0];
         CreaCamino(casillas[0, 0], visitado);
         instanciaJugador(actCasilla.transform);
-        instanciaObjetivos();
         bakeInRunTime();
+        instanciaObjetivos();
+
+        grafoLaberinto = new Graph(casillas);
+        //TO ERASE:
         jugador.GetComponent<NavMeshAgent>().SetDestination(casillas[filas - 1, columnas - 1].transform.position);
     }
 
@@ -479,7 +500,7 @@ public class LaberintoManager : MonoBehaviour
 
         //Creamos el objeto que nos servirá como prefab
         GameObject objeto = Instantiate(objetivoPrefab, new Vector3(posX, 0.5f, posZ), Quaternion.identity, transform).gameObject;
-        
+
         //Lo añadimos a la lista de objetivos
         objetivos.Add(objeto.GetComponent<ObjetivoBehaviour>());
     }
@@ -511,12 +532,10 @@ public class LaberintoManager : MonoBehaviour
         float adj = 0.0f;
         float divPercentage = 1.0f / maxDivisions;
 
-        while(divPercentage / 2 < haltonResult - adj)
+        while (divPercentage / 2 < haltonResult - adj)
         {
             adj += divPercentage;
         }
-
-        //if (divPercentage / 2 > haltonResult - adj) adj += divPercentage;
 
         return adj;
     }
@@ -524,6 +543,11 @@ public class LaberintoManager : MonoBehaviour
     public Vector3 getPosJugador()
     {
         return jugador.transform.position;
+    }
+
+    public Graph getGrafoLaberinto()
+    {
+        return grafoLaberinto;
     }
 
 
