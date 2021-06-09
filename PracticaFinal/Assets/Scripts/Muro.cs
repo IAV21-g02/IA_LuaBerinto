@@ -37,24 +37,24 @@ public class Muro : MonoBehaviour
         switch (orientacion_)
         {
             case Orientacion.NORTE:
-                GetComponent<Renderer>().material.color = Color.red;
+                //GetComponent<Renderer>().material.color = Color.red;
                 transform.Rotate(Vector3.up, 90);
                 transform.position = new Vector3(transform.parent.position.x, transform.position.y,
                     transform.parent.position.z + (LaberintoManager.instance.getProfundidadCasilla() / 2) - transform.localScale.z / 2);
                 break;
             case Orientacion.OESTE:
-                GetComponent<Renderer>().material.color = Color.blue;
+                //GetComponent<Renderer>().material.color = Color.blue;
                 transform.position = new Vector3(transform.parent.position.x - (LaberintoManager.instance.getProfundidadCasilla() / 2) + (transform.localScale.z / 2),
                     transform.position.y, transform.position.z);
                 break;
             case Orientacion.SUR:
-                GetComponent<Renderer>().material.color = Color.green;
+                //GetComponent<Renderer>().material.color = Color.green;
                 transform.Rotate(Vector3.up, -90);
                 transform.position = new Vector3(transform.parent.position.x, transform.position.y,
                     transform.parent.position.z - (LaberintoManager.instance.getProfundidadCasilla() / 2) + transform.localScale.z / 2);
                 break;
             case Orientacion.ESTE:
-                GetComponent<Renderer>().material.color = Color.yellow;
+                //GetComponent<Renderer>().material.color = Color.yellow;
                 transform.position = new Vector3(transform.parent.position.x + (LaberintoManager.instance.getProfundidadCasilla() / 2) - transform.localScale.z / 2,
                     transform.position.y, transform.position.z);
                 break;
@@ -75,7 +75,7 @@ public class Muro : MonoBehaviour
     public void setMuroExterior()
     {
         inamovible = true;
-        GetComponent<Renderer>().material.color = Color.black;
+        //GetComponent<Renderer>().material.color = Color.black;
     }
 
     public Casilla getAcceso()

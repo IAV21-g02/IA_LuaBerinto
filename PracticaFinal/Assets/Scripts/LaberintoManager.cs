@@ -30,7 +30,7 @@ public class LaberintoManager : MonoBehaviour
     //  Obstáculos (aka muros)
     private List<NavMeshObstacle> obstacles;
     //  Objetos que hay que recoger con la IA
-    private List<ObjetivoBehaviour> objetivos;
+    public List<ObjetivoBehaviour> objetivos;
     //  Ancho de la superficie de navegacion
     private float limX;
     //  Largo de la superficie de navegacion
@@ -39,6 +39,8 @@ public class LaberintoManager : MonoBehaviour
     private Vector3 initPos = Vector3.zero;
     //  Grafo que representa el laberinto para mover al player
     private Graph grafoLaberinto;
+    //  Lista de npcs disponibles 
+    public List<GameObject> npcs;
 
     [Tooltip("Filas que componen este laberinto")]
     public int filas;
@@ -77,7 +79,7 @@ public class LaberintoManager : MonoBehaviour
         casillas = new Casilla[filas, columnas];
         surfaces = new List<NavMeshSurface>();
         obstacles = new List<NavMeshObstacle>();
-        objetivos = new List<ObjetivoBehaviour>();
+        //objetivos = new List<ObjetivoBehaviour>();
 
         //Inicializacion de variables necesarias para la secuencia de Halton
         limX = (filas * getAnchuraCasilla());
@@ -226,7 +228,7 @@ public class LaberintoManager : MonoBehaviour
         CreaCamino(casillas[0, 0], visitado);
         instanciaJugador(actCasilla.transform);
         bakeInRunTime();
-        instanciaObjetivos();
+        creaMisiones();
 
         grafoLaberinto = new Graph(casillas);
         //TO ERASE:
@@ -240,7 +242,8 @@ public class LaberintoManager : MonoBehaviour
 
         while (cont < numPremios)
         {
-            Halton2d(baseX, baseY, cont + 1);
+            //Lo añadimos a la lista de objetivos
+            objetivos.Add(Halton2d(baseX, baseY, cont + 1, objetivoPrefab.gameObject).GetComponent<ObjetivoBehaviour>());
             cont++;
         }
     }
@@ -361,7 +364,7 @@ public class LaberintoManager : MonoBehaviour
             if (!visitado[nextCasillaInd.x, nextCasillaInd.y])
             {
                 //Debug.Log("[ " + nextCasillaInd.x + "," + nextCasillaInd.y + "]");
-                nextCasilla.GetComponent<Renderer>().material.color = Color.magenta;
+                //nextCasilla.GetComponent<Renderer>().material.color = Color.magenta;
                 quitaMuro(casilla, nextCasilla, getOrientacionEntreCasillas(casilla, nextCasilla));
                 CreaCamino(nextCasilla, visitado);
             }
@@ -491,18 +494,14 @@ public class LaberintoManager : MonoBehaviour
     /// <summary>
     /// Generador del mapa de Halton
     /// </summary>
-    private void Halton2d(float baseX, float baseY, float index)
+    private GameObject Halton2d(float baseX, float baseY, float index, GameObject prefab)
     {
-
         //Ajuste para pasar del rango [0,1] a las coordenadas reales del suelo
         float posX = initPos.x + (adjustHaltonToGrid(Halton(baseX, index), columnas) * limX);
         float posZ = initPos.z + (adjustHaltonToGrid(Halton(baseY, index), filas) * limZ);
 
         //Creamos el objeto que nos servirá como prefab
-        GameObject objeto = Instantiate(objetivoPrefab, new Vector3(posX, 0.5f, posZ), Quaternion.identity, transform).gameObject;
-
-        //Lo añadimos a la lista de objetivos
-        objetivos.Add(objeto.GetComponent<ObjetivoBehaviour>());
+        return Instantiate(prefab, new Vector3(posX, 0.5f, posZ), Quaternion.identity, transform).gameObject;
     }
 
 
@@ -550,5 +549,22 @@ public class LaberintoManager : MonoBehaviour
         return grafoLaberinto;
     }
 
+    private void creaMisiones()
+    {
+        int num = npcs.Count;
+        for (int i = 0; i < num; i++)
+        {
+            int aux = Random.Range(0, npcs.Count);
+            NPC npc = Halton2d(baseX, baseY, i + 1, npcs[aux].gameObject).GetComponent<NPC>();
+            npc.transform.position = new Vector3(npc.transform.position.x, 0.25f, npc.transform.position.z);
 
+            int aux2 = Random.Range(0, objetivos.Count);
+            ObjetivoBehaviour obj = Halton2d(baseX, baseY, i + num, objetivos[aux].gameObject).GetComponent<ObjetivoBehaviour>();
+
+            npc.setMision(new Mision(npc, obj));
+
+            npcs.Remove(npcs[aux]);
+            objetivos.Remove(objetivos[aux2]);
+        }
+    }
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Jugador : MonoBehaviour
 {
@@ -24,22 +25,55 @@ public class Jugador : MonoBehaviour
     //  Agrega un objeto a la lista de objetos que conozco
     public void actualizaConocimientos(ObjetivoBehaviour obj)
     {
+        if (!objetosConocidos.Contains(obj))
+            objetosConocidos.Add(obj);
+
+        bool encontrado = false;
+        int cont = 0;
+        while (npcConocidos.Count > 0 && !encontrado && cont < npcConocidos.Count)
+        {
+            if (npcConocidos[cont].getMision().getObjeto().Equals(obj))
+            {
+                if (objetoEnBolsillo == null)
+                {
+                    objetoEnBolsillo = obj;
+                    obj.objetoRecogido();
+                }
+                else
+                {
+                    cambiaObjetoDelBolsillo(obj);
+                }
+                GetComponent<NavMeshAgent>().SetDestination(npcConocidos[cont].transform.position);
+                encontrado = true;
+            }
+            else cont++;
+        }
+
         if (objetoEnBolsillo == null)
         {
             objetoEnBolsillo = obj;
             obj.objetoRecogido();
         }
-
-
-        if (!objetosConocidos.Contains(obj))
-            objetosConocidos.Add(obj);
     }
 
     //  Agrega un npc a la lista de npc que conozco
     public void actualizaConocimientos(NPC npc)
     {
         if (!npcConocidos.Contains(npc))
+        {
             npcConocidos.Add(npc);
+            if (objetoEnBolsillo != null && npc.getMision().getObjeto().Equals(objetoEnBolsillo))
+            {
+                npc.darObjeto();
+                //TO ERASE
+                GetComponent<NavMeshAgent>().SetDestination(LaberintoManager.instance.getCasillaByIndex(0, 0).transform.position);
+
+            }
+            else if (objetosConocidos.Contains(npc.getMision().getObjeto()))
+            {
+                GetComponent<NavMeshAgent>().SetDestination(npc.getMision().getObjeto().transform.position);
+            }
+        }
     }
 
     //  Agrega un objeto al bolsillo
@@ -59,6 +93,7 @@ public class Jugador : MonoBehaviour
     {
         Instantiate(objetoEnBolsillo, obj.transform.position, Quaternion.identity);
         objetoEnBolsillo = obj;
+        obj.objetoRecogido();
     }
 
     //  Agrega una misión a la lista de misiones 
@@ -66,5 +101,5 @@ public class Jugador : MonoBehaviour
     {
         if (!misionesActivas.Contains(mision))
             misionesActivas.Add(mision);
-    }   
+    }
 }

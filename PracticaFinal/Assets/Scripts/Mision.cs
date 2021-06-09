@@ -8,15 +8,20 @@ public class Mision : MonoBehaviour
     //  Npc que encarga esta misión
     private NPC npc;
 
-    // Start is called before the first frame update
-    void Start()
+    //  Objeto que pide esta mision
+    private ObjetivoBehaviour objeto;
+
+    //
+    public bool misionCompleta = false;
+
+    public Mision(NPC npc_,ObjetivoBehaviour obj_)
     {
-        
+        npc = npc_;
+        objeto = obj_;
     }
 
-    // Update is called once per frame
-    void Update()
+    public ObjetivoBehaviour getObjeto()
     {
-        
+        return objeto;
     }
 }

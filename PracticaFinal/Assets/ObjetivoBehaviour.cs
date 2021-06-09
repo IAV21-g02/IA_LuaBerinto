@@ -33,4 +33,6 @@ public class ObjetivoBehaviour : MonoBehaviour
         transform.position = LaberintoManager.instance.getPosJugador() + new Vector3(0.25f,0,0);
         enBolsillo = true;
     }
+
+
 }

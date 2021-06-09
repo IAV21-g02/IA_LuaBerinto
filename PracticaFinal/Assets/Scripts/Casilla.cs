@@ -126,8 +126,9 @@ public class Casilla : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Jugador"))
         {
+            GetComponentInChildren<Light>().enabled = true;
             LaberintoManager.instance.getGrafoLaberinto().nodes[myIndex].visited = true;
-            Debug.Log("Visitada casilla con indice: " + myIndex.x + " , " + myIndex.y);
+            //Debug.Log("Visitada casilla con indice: " + myIndex.x + " , " + myIndex.y);
         }
     }
 
