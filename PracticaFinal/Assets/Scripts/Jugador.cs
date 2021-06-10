@@ -43,15 +43,13 @@ namespace luaberinto
             misionesActivas = new List<Mision>();
             npcConocidos = new List<NPC>();
             casillaActual = new Index(0, 0);
-           
-
         }
 
         public void Update()
         {
             //movemos al jugador
-            Debug.Log(dir);
-            transform.Translate(dir);
+            transform.Translate(dir*Time.deltaTime);
+            //Debug.DrawLine(transform.position, transform.position + dir * 10,Color.red);
         }
 
         //  Agrega un objeto a la lista de objetos que conozco
@@ -76,7 +74,7 @@ namespace luaberinto
                         cambiaObjetoDelBolsillo(obj);
                     }
                     //TO ERASE
-                    GetComponent<NavMeshAgent>().SetDestination(npcConocidos[cont].transform.position);
+                    //GetComponent<NavMeshAgent>().SetDestination(npcConocidos[cont].transform.position);
                     encontrado = true;
                 }
                 else cont++;
@@ -175,6 +173,7 @@ namespace luaberinto
             //comprobamos si estamos en una interseccion
             if (grafo.nodes[casillaActual].Successors.Count > 2)//estamos en una interseccion
             {
+                Debug.Log("Interseccion");
                 //no esta visitada todavia
                 if (!grafo.nodes[casillaActual].visited)
                 {
@@ -190,8 +189,12 @@ namespace luaberinto
                         //cogemos la nueva casilla a la que se tiene que mover
                         Index ind = grafo.nodes[casillaActual].Successors[i].id;
                         Casilla casilla = LaberintoManager.instance.getCasillaByIndex(ind.x, ind.y);
+                        Debug.Log("Siguiente Casilla: " + ind.x + " , " + ind.y);
+
                         //calculamos la direccion en la que se tiene que mover
-                        dir = (casilla.gameObject.transform.position - transform.position).normalized;
+                        Vector3 aux = new Vector3(casilla.gameObject.transform.position.x, transform.position.y, casilla.gameObject.transform.position.z);
+
+                        dir = (aux - transform.position).normalized;
                         break;
 
                     }
@@ -203,23 +206,26 @@ namespace luaberinto
                     caminoRecorrido.Pop();
                     //movemos al jugador a la casilla anterior
                     Index ind = caminoRecorrido.Peek();
+                    Debug.Log("Siguiente Casilla: " + ind.x + " , " + ind.y);
                     Casilla casilla = LaberintoManager.instance.getCasillaByIndex(ind.x, ind.y);
                     //calculamos la direccion en la que se tiene que mover
-                    dir = (casilla.gameObject.transform.position - transform.position).normalized;
+                    Vector3 aux = new Vector3(casilla.gameObject.transform.position.x, transform.position.y, casilla.gameObject.transform.position.z);
+
+                    dir = (aux - transform.position).normalized;
 
                     //eliminamos el cruce de la lista
                     Cruces.Pop();
-
                 }
-
-
-
             }
             else//no estamos en un cruce
             {
+                Debug.Log("CasillaNormal");
+
                 //si la casilla no esta visitada
                 if (!grafo.nodes[casillaActual].visited)
                 {
+                    Debug.Log("NO Visitada");
+
                     //la añadimos al camino
                     caminoRecorrido.Push(casillaActual);
                     //avanzamos hacia delante
@@ -231,26 +237,38 @@ namespace luaberinto
                             //cogemos la nueva casilla a la que se tiene que mover
                             Index ind = grafo.nodes[casillaActual].Successors[i].id;
                             Casilla casilla = LaberintoManager.instance.getCasillaByIndex(ind.x, ind.y);
+                            Debug.Log("Siguiente Casilla: " + ind.x + " , " + ind.y);
+
                             //calculamos la direccion en la que se tiene que mover
-                            dir = (casilla.gameObject.transform.position - transform.position).normalized;
+                            Vector3 aux = new Vector3(casilla.gameObject.transform.position.x, transform.position.y, casilla.gameObject.transform.position.z);
+
+                            dir = (aux - transform.position).normalized;
                             break;
                         }
                     }
                 }
                 else//si la casilla si esta visitada
                 {
+                    Debug.Log("Visitada");
+
                     //quitamos esta casilla del camino
                     caminoRecorrido.Pop();
                     //movemos al jugador a la casilla anterior
                     Index ind = caminoRecorrido.Peek();
                     Casilla casilla = LaberintoManager.instance.getCasillaByIndex(ind.x, ind.y);
+                    Debug.Log("Siguiente Casilla: " + ind.x + " , " + ind.y);
+
                     //calculamos la direccion en la que se tiene que mover
-                    dir = (casilla.gameObject.transform.position - transform.position).normalized;
+                    Vector3 aux = new Vector3(casilla.gameObject.transform.position.x, transform.position.y, casilla.gameObject.transform.position.z);
+
+                    dir = (aux - transform.position).normalized;
 
 
                 }
 
             }
+
+            Debug.Log(dir);
         }
 
 

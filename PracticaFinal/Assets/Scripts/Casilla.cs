@@ -4,11 +4,10 @@ using UnityEngine;
 
 namespace luaberinto
 {
-
     public class Casilla : MonoBehaviour
     {
         //  Index de esta casilla en las casillas del manager
-        Index myIndex;
+        public Index myIndex { get; set; }
 
         //  Muro norte de esta casilla
         public Muro muroNorte;
@@ -35,7 +34,7 @@ namespace luaberinto
         public void Init(Muro prefab, Index myIndex_)
         {
             myIndex = myIndex_;
-            //GetComponentInChildren<TextMesh>().text = "[" + myIndex.x + " , " + myIndex.y + "]";
+            GetComponentInChildren<TextMesh>().text = "[" + myIndex.x + " , " + myIndex.y + "]";
 
             muroNorte = Instantiate(prefab, transform);
             muroNorte.Orienta(Orientacion.NORTE);
@@ -129,18 +128,11 @@ namespace luaberinto
         {
             if (collision.gameObject.CompareTag("Jugador"))
             {
-                GetComponentInChildren<Light>().enabled = true;
-                //cogemos el player
-                Jugador player = collision.gameObject.GetComponent<Jugador>();
-                //actualizamos la casilla
-                player.casillaActual = myIndex;
-                //cambiamos la direccion del jugador
-                player.mueveSiguienteCasilla();
-                //marcamos la casilla como visitada
-                LaberintoManager.instance.getGrafoLaberinto().nodes[myIndex].visited = true;
+                GetComponentInChildren<Light>().enabled = true;  
                 //Debug.Log("Visitada casilla con indice: " + myIndex.x + " , " + myIndex.y);
             }
         }
+
 
     }
 

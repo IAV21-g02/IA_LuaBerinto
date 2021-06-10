@@ -156,8 +156,7 @@ namespace luaberinto
             GeneraLaberinto();
         }
 
-        // Asigna los obstaculos y suelos para su bake en runtime
-        
+
 
         //Asigna los accesos de los muros 
         private void asignaAccesos()
@@ -239,7 +238,7 @@ namespace luaberinto
         }
 
         //  Devuelve las casillas adyacentes y asequibles desde una casilla
-        private List<Casilla> getCasillasAdyacentes(Casilla casilla)
+        public List<Casilla> getCasillasAdyacentes(Casilla casilla)
         {
             List<Casilla> orientaciones = new List<Casilla>();
             Casilla newCasilla = getCasillaByOrientacion(casilla, Orientacion.NORTE);

@@ -17,21 +17,12 @@ namespace luaberinto
 
         //  Variable que determina si este muro se puede quitar
         private bool inamovible = false;
-        //  Variable que determina si este muro está abierto
-        private bool abierto = false;
+
+        //  Variable que determina si hay muro o no
+        private bool hayMuro = true;
+
         //  Casilla a la que este muro da acceso
         public Casilla casillaAcceso;
-
-        void Start()
-        {
-
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
 
         //  Gira los muros en función de su orientación
         public void Orienta(Orientacion orientacion_)
@@ -71,13 +62,16 @@ namespace luaberinto
         {
             if (!inamovible)
             {
-                Destroy(this.gameObject);
+                hayMuro = false;
+                GetComponent<BoxCollider>().enabled = false;
+                GetComponent<Renderer>().enabled = false;
             }
         }
 
         public void setMuroExterior()
         {
             inamovible = true;
+            hayMuro = true;
             //GetComponent<Renderer>().material.color = Color.black;
         }
 
@@ -91,6 +85,7 @@ namespace luaberinto
             if (newAcceso == null)
             {
                 inamovible = true;
+                hayMuro = true;
             }
             casillaAcceso = newAcceso;
         }
@@ -115,7 +110,7 @@ namespace luaberinto
 
         public bool estaAbierto()
         {
-            return abierto;
+            return !hayMuro;
         }
     }
 

@@ -34,19 +34,20 @@ namespace luaberinto
             //Añadimos las conexiones necesarias
             foreach (Casilla c in casillas)
             {
-                if (c.muroNorte.estaAbierto())
+
+                if (c.muroNorte.estaAbierto() && c.muroNorte.casillaAcceso)
                 {
                     Connect(c.getIndex(), c.muroNorte.casillaAcceso.getIndex());
                 }
-                if (c.muroSur.estaAbierto())
+                if (c.muroSur.estaAbierto() && c.muroSur.casillaAcceso)
                 {
                     Connect(c.getIndex(), c.muroSur.casillaAcceso.getIndex());
                 }
-                if (c.muroEste.estaAbierto())
+                if (c.muroEste.estaAbierto() && c.muroEste.casillaAcceso)
                 {
                     Connect(c.getIndex(), c.muroEste.casillaAcceso.getIndex());
                 }
-                if (c.muroOeste.estaAbierto())
+                if (c.muroOeste.estaAbierto() && c.muroOeste.casillaAcceso)
                 {
                     Connect(c.getIndex(), c.muroOeste.casillaAcceso.getIndex());
                 }
@@ -60,7 +61,6 @@ namespace luaberinto
         public void Connect( Index from, Index to)
         {
             nodes[from].Successors.Add(nodes[to]);
-            nodes[to].Predecessors.Add(nodes[from]);
         }
 
         // Metodo que devuelve el diccionario como una lista por si fuese necesario en algún caso
@@ -86,14 +86,12 @@ namespace luaberinto
         public bool visited { get; set; }
 
         //  Listas con los vecinos a este nodo
-        public List<Node> Predecessors { get; set; }
         public List<Node> Successors { get; set; }
 
         //  Constructora
         public Node()
         {
             visited = false;
-            Predecessors = new List<Node>();
             Successors = new List<Node>();
         }
 
