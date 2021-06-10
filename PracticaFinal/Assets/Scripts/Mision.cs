@@ -2,26 +2,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
-public class Mision : MonoBehaviour
+namespace luaberinto
 {
-    //  Npc que encarga esta misión
-    private NPC npc;
 
-    //  Objeto que pide esta mision
-    private ObjetivoBehaviour objeto;
-
-    //
-    public bool misionCompleta = false;
-
-    public Mision(NPC npc_,ObjetivoBehaviour obj_)
+    public class Mision : MonoBehaviour
     {
-        npc = npc_;
-        objeto = obj_;
+        //  Npc que encarga esta misión
+        private NPC npc;
+
+        //  Objeto que pide esta mision
+        private ObjetivoBehaviour objeto;
+
+        //
+        public bool misionCompleta = false;
+
+        public Mision(NPC npc_, ObjetivoBehaviour obj_)
+        {
+            npc = npc_;
+            objeto = obj_;
+        }
+
+        public ObjetivoBehaviour getObjeto()
+        {
+            return objeto;
+        }
     }
 
-    public ObjetivoBehaviour getObjeto()
-    {
-        return objeto;
-    }
 }

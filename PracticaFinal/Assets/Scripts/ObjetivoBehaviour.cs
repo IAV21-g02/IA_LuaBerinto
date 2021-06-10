@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+namespace luaberinto
+{
+
 public class ObjetivoBehaviour : MonoBehaviour
 {
     private bool enBolsillo = false;
@@ -34,5 +37,7 @@ public class ObjetivoBehaviour : MonoBehaviour
         enBolsillo = true;
     }
 
+
+}
 
 }

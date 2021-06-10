@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 8530896536379853547}
   - component: {fileID: 4097244189947643922}
   - component: {fileID: 2017138845990248401}
-  - component: {fileID: -9024273948252325647}
   m_Layer: 0
   m_Name: Muro
   m_TagString: Untagged
@@ -111,19 +110,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   orientacion: 0
   casillaAcceso: {fileID: 0}
---- !u!208 &-9024273948252325647
-NavMeshObstacle:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5975007117115135800}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 0.5, y: 0.5, z: 0.45}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 0
-  m_Center: {x: 0, y: 0, z: 0}
-  m_TimeToStationary: 0.5
