@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 namespace luaberinto
 {
@@ -29,6 +30,15 @@ namespace luaberinto
 
         public Index casillaActual { get; set; }
 
+        // Cámara asociada al jugador
+        private Camera jugadorCam;
+        //  Cuerpo del modelo del jugador
+        private GameObject cuerpo;
+
+        private Text textNPC;
+        private Text textObj;
+        private Text textActOj;
+
         private void Awake()
         {
             caminoRecorrido = new Stack<Index>();
@@ -43,19 +53,51 @@ namespace luaberinto
             misionesActivas = new List<Mision>();
             npcConocidos = new List<NPC>();
             casillaActual = new Index(0, 0);
+            jugadorCam = GetComponentInChildren<Camera>();
+            Camera.main.transform.parent = transform;
+            cuerpo = gameObject.transform.GetChild(1).gameObject;
+
+            var t = Canvas.FindObjectsOfType<Text>();
+            foreach (Text txt in t)
+            {
+                switch (txt.name)
+                {
+                    case "Objetos":
+                        textObj = txt;
+                        break;
+                    case "Npc":
+                        textNPC = txt;
+                        break;
+                    case "ActualObjeto":
+                        textActOj = txt;
+                        break;
+                }
+            }
         }
 
         public void Update()
         {
             //movemos al jugador
             transform.Translate(dir * Time.deltaTime);
+            if (Input.GetKeyDown(KeyCode.Space))
+                jugadorCam.enabled = false;
+            else if (Input.GetKeyUp(KeyCode.Space))
+                jugadorCam.enabled = true;
+            textNPC.text = "NPCs :" + npcConocidos.Count + "/3"; 
+            textObj.text = "objetivos :" + objetosConocidos.Count + "/3";
+            textActOj.text = "actual obj :" + objetoEnBolsillo;
+
+            //  giros muy hardos TODO suavizar?
+            cuerpo.transform.forward = dir;
         }
 
         //  Agrega un objeto a la lista de objetos que conozco
         public void actualizaConocimientos(ObjetivoBehaviour obj)
         {
             if (!objetosConocidos.Contains(obj))
+            {
                 objetosConocidos.Add(obj);
+            }
 
             bool encontrado = false;
             int cont = 0;
@@ -246,6 +288,5 @@ namespace luaberinto
 
             }
         }
-
     }
 }
