@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 //LINK AL FORO DE STACK OVERFLOW:  stackoverflow.com/questions/21685552/graph-like-implementation-in-c-sharp
 //COPYRIGHT BY LUABERINTO :D
@@ -18,6 +19,7 @@ namespace luaberinto
         public Graph(Casilla[,] laberinto)
         {
             InitGraph(laberinto);
+            dijkstra a = new dijkstra(this, new Index(0, 0), new Index(0, 0));
         }
 
         //Inicialización del grafo segun el laberinto generado proceduralmente
@@ -70,11 +72,7 @@ namespace luaberinto
         }
     }
 
-    //Clase auxiliar para añadir nodos y conexiones
-    public static class NodeHelper
-    {
 
-    }
 
     //  Clase nodo que representa de forma abstracta una casilla
     public class Node
@@ -102,6 +100,93 @@ namespace luaberinto
         }
 
 
+    }
+
+    public class Pair : IComparable<Pair>
+    {
+       public Index index;
+        public int valor;
+       public Pair(Index i, int v)
+        {
+            index = i;
+            valor = v;
+        }
+
+        public int CompareTo(Pair obj)
+        {
+           // if (obj == null) return 1;
+
+            Pair otherPair = obj as Pair;
+            if (otherPair != null)
+                return this.valor.CompareTo(otherPair.valor);
+            else
+                throw new ArgumentException("Object is not a Temperature");
+        }
+
+        public bool Equals(Pair other)
+        {
+            return (other.index.x == this.index.x) && (other.index.y == this.index.y);
+        }
+    }
+
+        
+
+    public class dijkstra
+    {
+        
+        private Graph grafo;
+        Index ini;
+        Index fin;
+        int[] distancias;
+        bool[] visitados;
+        Node[] ulti;
+        Priority_Queue<Pair> pq;
+        public dijkstra(Graph graf, Index x, Index f)
+        {
+            grafo = graf;
+            ini = x;
+            fin = f;
+            distancias = new int[grafo.nodes.Count];
+            visitados = new bool[grafo.nodes.Count];
+            ulti = new Node[grafo.nodes.Count];
+            pq = new Priority_Queue<Pair>();
+
+            //inicializamos los arrays
+            for ( int i = 0; i< grafo.nodes.Count; i++)
+            {
+                distancias[i] = int.MaxValue;
+                visitados[i] = false;
+            }
+
+            distancias[ini.x * LaberintoManager.instance.columnas + ini.y] = 0;
+            pq.Add(new Pair(ini,0));
+            while (pq.Count != 0)
+            {
+                Pair v = pq.Remove();
+                foreach (Node a in grafo.nodes[v.index].Successors)
+                    relajar(a, grafo.nodes[v.index]);
+            }
+
+        }
+
+        private void relajar(Node a, Node b)
+        {
+
+            int destino = a.id.x * LaberintoManager.instance.columnas + a.id.y;
+            int origen = b.id.x * LaberintoManager.instance.columnas + b.id.y;
+
+            if (distancias[destino] > distancias[origen] + 1)
+            {
+                distancias[destino] = distancias[origen] +1;
+                ulti[destino] = a;
+               bool aux = pq.Contains(new Pair(a.id,0));
+                if (aux)
+                {
+                    pq.Remove(new Pair(a.id, 0));
+                }
+                pq.Add(new Pair(a.id, distancias[destino]));
+            }
+        }
     }
 
 }
