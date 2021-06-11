@@ -3,13 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-//LINK AL FORO DE STACK OVERFLOW:  stackoverflow.com/questions/21685552/graph-like-implementation-in-c-sharp
-//COPYRIGHT BY LUABERINTO :D
-
 //Clase grafo para representar las conexiones que hay entre las casillas de nuestro laberinto
 namespace luaberinto
 {
-
     public class Graph
     {
         //Dicionario que dado el indice de la casilla devuelve el nodo asociado a la misma
@@ -19,7 +15,17 @@ namespace luaberinto
         public Graph(Casilla[,] laberinto)
         {
             InitGraph(laberinto);
-            dijkstra a = new dijkstra(this, new Index(0, 0), new Index(0, 0));
+
+            nodes[new Index(0, 0)].visited = true;
+
+            //TO ERASE:
+            dijkstra a = new dijkstra(this, new Index(0, 0), new Index(5, 5));
+            Stack<Index> camino = a.devuelveCamino();
+
+            foreach(Index casilla in camino)
+            {
+                LaberintoManager.instance.getCasillaByIndex(casilla.x, casilla.y).gameObject.GetComponent<Renderer>().material.color = Color.magenta;
+            }
         }
 
         //Inicialización del grafo segun el laberinto generado proceduralmente
@@ -30,7 +36,7 @@ namespace luaberinto
             //Creacion de los nodos que conforman el grafo
             foreach (Casilla c in casillas)
             {
-               Add(c.getIndex());
+                Add(c.getIndex());
             }
 
             //Añadimos las conexiones necesarias
@@ -60,7 +66,7 @@ namespace luaberinto
         {
             nodes.Add(nodename, new Node(nodename));
         }
-        public void Connect( Index from, Index to)
+        public void Connect(Index from, Index to)
         {
             nodes[from].Successors.Add(nodes[to]);
         }
@@ -102,11 +108,14 @@ namespace luaberinto
 
     }
 
+    //Clase comparadora definida para utilizar la cola de prioridad en Dijkstra
+    //Contiene el indice de la casilla a la que representa y la distancia que hay
+    //que recorrer para llegar a esa casilla
     public class Pair : IComparable<Pair>
     {
-       public Index index;
+        public Index index;
         public int valor;
-       public Pair(Index i, int v)
+        public Pair(Index i, int v)
         {
             index = i;
             valor = v;
@@ -114,7 +123,7 @@ namespace luaberinto
 
         public int CompareTo(Pair obj)
         {
-           // if (obj == null) return 1;
+            // if (obj == null) return 1;
 
             Pair otherPair = obj as Pair;
             if (otherPair != null)
@@ -129,63 +138,93 @@ namespace luaberinto
         }
     }
 
-        
 
+    //Clase que dado un grafo, el indice de una casilla origen y el indice de una casilla destino
+    //calcula el camino mas corto desde dicho origen a cualquiera de las casillas de nuestro
+    //laberintp
     public class dijkstra
     {
-        
         private Graph grafo;
         Index ini;
         Index fin;
         int[] distancias;
-        bool[] visitados;
         Node[] ulti;
         Priority_Queue<Pair> pq;
         public dijkstra(Graph graf, Index x, Index f)
         {
+            //Inicializacion de variables
             grafo = graf;
             ini = x;
             fin = f;
             distancias = new int[grafo.nodes.Count];
-            visitados = new bool[grafo.nodes.Count];
             ulti = new Node[grafo.nodes.Count];
             pq = new Priority_Queue<Pair>();
 
             //inicializamos los arrays
-            for ( int i = 0; i< grafo.nodes.Count; i++)
+            for (int i = 0; i < grafo.nodes.Count; i++)
             {
                 distancias[i] = int.MaxValue;
-                visitados[i] = false;
             }
 
+            //La distancia entre la casilla origen y ella misma es 0
             distancias[ini.x * LaberintoManager.instance.columnas + ini.y] = 0;
-            pq.Add(new Pair(ini,0));
+            //La añadimos a la cola de prioridad
+            pq.Add(new Pair(ini, 0));
+
+            //Mientras esa cola no esté vacía
             while (pq.Count != 0)
             {
+                //Cogemos el top
                 Pair v = pq.Remove();
+                //Comprobamos las conexiones que tiene dicho nodo con sus adyacentes
                 foreach (Node a in grafo.nodes[v.index].Successors)
-                    relajar(a, grafo.nodes[v.index]);
+                    //Si lo hemos visitado, comprobamos que sea el camino mas corto
+                    if(a.visited)relajar(a, grafo.nodes[v.index]);
             }
 
         }
 
         private void relajar(Node a, Node b)
         {
-
+            //Calculamos la posición en el array de los nodos a y b (destino y origen respectivamente)
             int destino = a.id.x * LaberintoManager.instance.columnas + a.id.y;
             int origen = b.id.x * LaberintoManager.instance.columnas + b.id.y;
 
+            //Si la distancia al destino que tenemos en este momento es mayor que la del origen mas 1 (puesto que son adyacentes)
             if (distancias[destino] > distancias[origen] + 1)
             {
-                distancias[destino] = distancias[origen] +1;
-                ulti[destino] = a;
-               bool aux = pq.Contains(new Pair(a.id,0));
+                //Actualizamos valor de distancias
+                distancias[destino] = distancias[origen] + 1;
+                //Guardamos referencia al nodo anterior
+                ulti[destino] = b;
+
+                //Actualizamos cola de prioridad
+                bool aux = pq.Contains(new Pair(a.id, 0));
                 if (aux)
                 {
                     pq.Remove(new Pair(a.id, 0));
                 }
                 pq.Add(new Pair(a.id, distancias[destino]));
             }
+        }
+
+        //Método para devolver el camino más corto del origen al destino
+        //si no hay camino se devuelve una pila con un solo elemento (el indice del nodo destino)
+        public Stack<Index> devuelveCamino()
+        {
+            Stack<Index> camino = new Stack<Index>();
+
+            camino.Push(fin);
+
+            if (grafo.nodes[fin].visited)
+            {
+                while (!camino.Peek().Equals(ini))
+                {
+                    camino.Push(ulti[camino.Peek().x * LaberintoManager.instance.columnas + camino.Peek().y].id);
+                }
+            }
+
+            return camino;
         }
     }
 

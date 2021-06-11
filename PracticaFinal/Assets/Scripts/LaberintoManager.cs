@@ -2,10 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using System;
 
 namespace luaberinto
 {
-    public struct Index
+    public struct Index : IEquatable<Index>
     {
         public int x;
         public int y;
@@ -14,6 +15,10 @@ namespace luaberinto
         {
             x = x_;
             y = y_;
+        }
+        public bool Equals(Index other)
+        {
+            return this.x == other.x && this.y == other.y;
         }
 
     }
@@ -306,7 +311,7 @@ namespace luaberinto
                 //  Eligimos una casilla aleatoria de las posible salidas
                 //Random.seed = Random.Range(0,100);
                 //Random.seed = (int)Time.time;
-                rndElec = Random.Range(0, salidas.Count);
+                rndElec = UnityEngine.Random.Range(0, salidas.Count);
                 Casilla nextCasilla = salidas[rndElec];
                 Index nextCasillaInd = nextCasilla.getIndex();
                 if (!visitado[nextCasillaInd.x, nextCasillaInd.y])
@@ -502,11 +507,11 @@ namespace luaberinto
             int num = npcs.Count;
             for (int i = 0; i < num; i++)
             {
-                int aux = Random.Range(0, npcs.Count);
+                int aux = UnityEngine.Random.Range(0, npcs.Count);
                 NPC npc = Halton2d(baseX, baseY, i + 1, npcs[aux].gameObject).GetComponent<NPC>();
                 npc.transform.position = new Vector3(npc.transform.position.x, 0.25f, npc.transform.position.z);
 
-                int aux2 = Random.Range(0, objetivos.Count);
+                int aux2 = UnityEngine.Random.Range(0, objetivos.Count);
                 ObjetivoBehaviour obj = Halton2d(baseX, baseY, i + num, objetivos[aux].gameObject).GetComponent<ObjetivoBehaviour>();
 
                 npc.setMision(new Mision(npc, obj));
