@@ -5,7 +5,7 @@ using UnityEngine;
 namespace luaberinto
 {
 
-    public class Mision : MonoBehaviour
+    public class Mision 
     {
         //  Npc que encarga esta misión
         private NPC npc;

@@ -512,7 +512,7 @@ namespace luaberinto
                 npc.transform.position = new Vector3(npc.transform.position.x, 0.25f, npc.transform.position.z);
 
                 int aux2 = UnityEngine.Random.Range(0, objetivos.Count);
-                ObjetivoBehaviour obj = Halton2d(baseX, baseY, i + num, objetivos[aux].gameObject).GetComponent<ObjetivoBehaviour>();
+                ObjetivoBehaviour obj = Halton2d(baseX, baseY, i + 1 + num, objetivos[aux].gameObject).GetComponent<ObjetivoBehaviour>();
 
                 npc.setMision(new Mision(npc, obj));
 

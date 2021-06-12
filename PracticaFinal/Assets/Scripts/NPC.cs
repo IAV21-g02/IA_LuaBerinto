@@ -11,6 +11,10 @@ namespace luaberinto
         private Mision miMision;
         private Index miPos;
 
+        private void Start()
+        {
+            //miMision = new Mision(this, null);
+        }
         public void setMision(Mision mision_)
         {
             miMision = mision_;

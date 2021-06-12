@@ -16,7 +16,8 @@ namespace luaberinto
         {
             if (other.gameObject.CompareTag("Jugador"))
             {
-                Debug.Log("Llego a casilla: " + parent.myIndex.x + ", " + parent.myIndex.y);
+                LaberintoManager.instance.getCasillaByIndex(parent.getIndex().x, parent.getIndex().y).gameObject.GetComponent<Renderer>().material.color = Color.white;
+                //Debug.Log("Llego a casilla: " + parent.myIndex.x + ", " + parent.myIndex.y);
                 //cogemos el player
                 Jugador player = other.gameObject.GetComponent<Jugador>();
                 //actualizamos la casilla

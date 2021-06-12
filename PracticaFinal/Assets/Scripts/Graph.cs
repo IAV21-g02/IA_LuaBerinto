@@ -15,9 +15,6 @@ namespace luaberinto
         public Graph(Casilla[,] laberinto)
         {
             InitGraph(laberinto);
-
-          
-
            
         }
 
@@ -145,6 +142,10 @@ namespace luaberinto
         Priority_Queue<Pair> pq;
         public dijkstra(Graph graf, Index x, Index f)
         {
+            Debug.Log("Casilla comienzo Dijkstra: " + x.x + " , " + x.y);
+            Debug.Log("Casilla final Dijkstra: " + f.x + " , " + f.y);
+
+
             //Inicializacion de variables
             grafo = graf;
             ini = x;
@@ -207,14 +208,15 @@ namespace luaberinto
         {
             Stack<Index> camino = new Stack<Index>();
 
-            camino.Push(fin);
 
-            if (grafo.nodes[fin].visited)
+            if (!ini.Equals(fin) && grafo.nodes[fin].visited)
             {
+                camino.Push(fin);
                 while (!camino.Peek().Equals(ini))
                 {
                     camino.Push(ulti[camino.Peek().x * LaberintoManager.instance.columnas + camino.Peek().y].id);
                 }
+
             }
 
             return camino;

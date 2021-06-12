@@ -84,7 +84,6 @@ namespace luaberinto
 
         public void Update()
         {
-            Debug.Log(estado_);
 
             //movemos al jugador
             transform.Translate(dir * Time.deltaTime);
@@ -96,7 +95,7 @@ namespace luaberinto
                 jugadorCam.enabled = true;
             textNPC.text = "NPCs :" + npcConocidos.Count + "/3";
             textObj.text = "objetivos :" + objetosConocidos.Count + "/3";
-            textActOj.text = "actual obj :" + objetoEnBolsillo;
+            textActOj.text = "estado actual:" + estado_.ToString();
 
             //  giros muy hardos TODO suavizar?
             cuerpo.transform.forward = dir;
@@ -109,15 +108,22 @@ namespace luaberinto
             if (!objetosConocidos.Contains(obj))
             {
                 //lo añadimos a la lista
+                Debug.Log("Objeto");
                 objetosConocidos.Add(obj);
                 ActualizaMision();
             }
             // si tengo una mision actual y se trata del objeto que estoy buscando
             if (misionActual != null && misionActual.getObjeto() == obj)
             {
+                Debug.Log("Volvemos al NPC");
                 agregaObjetoAlBolsillo(obj);
                 dijkstra a = new dijkstra(LaberintoManager.instance.getGrafoLaberinto(), casillaActual, misionActual.getNPC().GetPos());
                 camino = a.devuelveCamino();
+
+                foreach( Index c in camino)
+                {
+                    LaberintoManager.instance.getCasillaByIndex(c.x, c.y).gameObject.GetComponent<Renderer>().material.color = Color.magenta;
+                }
 
             }
 
@@ -137,11 +143,12 @@ namespace luaberinto
             else//si ya lo conociamos
             {
                 //si es nuestra mision actual y tenemos el objeto se lo damos
-                if (misionActual.getNPC() == npc && objetoEnBolsillo == misionActual.getObjeto())
+                if (misionActual != null && misionActual.getNPC() == npc && objetoEnBolsillo == misionActual.getObjeto())
                 {
                     npc.darObjeto();
                     misionActual.misionCompleta = true;
                     misionActual = null;
+                    mueveSiguienteCasilla();
 
                 }
 
@@ -163,6 +170,10 @@ namespace luaberinto
                         misionActual = npc.getMision();
                         dijkstra a = new dijkstra(LaberintoManager.instance.getGrafoLaberinto(), casillaActual, npc.getMision().getObjeto().GetPos());
                         camino = a.devuelveCamino();
+                        foreach (Index c in camino)
+                        {
+                            LaberintoManager.instance.getCasillaByIndex(c.x, c.y).gameObject.GetComponent<Renderer>().material.color = Color.magenta;
+                        }
                         estado_ = estados.EnMision;
                         return;
                     }
@@ -182,6 +193,7 @@ namespace luaberinto
         public void agregaObjetoAlBolsillo(ObjetivoBehaviour obj)
         {
             objetoEnBolsillo = obj;
+            obj.gameObject.SetActive(false);
         }
 
         //  Elimina el objeto que lleva el jugador en el bolsillo
@@ -211,11 +223,11 @@ namespace luaberinto
             //comprobamos si estamos en una interseccion
             if (grafo.nodes[casillaActual].Successors.Count > 2)//estamos en una interseccion
             {
-                Debug.Log("Interseccion");
+                //Debug.Log("Interseccion");
                 //no esta visitada todavia
                 if (!grafo.nodes[casillaActual].visited)
                 {
-                    Debug.Log("Primera vez que llegamos a la intersección: " + casillaActual.x + " , " + casillaActual.y);
+                    //Debug.Log("Primera vez que llegamos a la intersección: " + casillaActual.x + " , " + casillaActual.y);
                     //metemos esa casilla en la pila
                     Cruces.Push(casillaActual);
                     caminoRecorrido.Push(casillaActual);
@@ -230,7 +242,7 @@ namespace luaberinto
                         //cogemos la nueva casilla a la que se tiene que mover
                         Index ind = grafo.nodes[casillaActual].Successors[i].id;
                         Casilla casilla = LaberintoManager.instance.getCasillaByIndex(ind.x, ind.y);
-                        Debug.Log("Siguiente Casilla: " + ind.x + " , " + ind.y);
+                        //Debug.Log("Siguiente Casilla: " + ind.x + " , " + ind.y);
 
                         //calculamos la direccion en la que se tiene que mover
                         Vector3 aux = new Vector3(casilla.gameObject.transform.position.x, transform.position.y, casilla.gameObject.transform.position.z);
@@ -244,12 +256,12 @@ namespace luaberinto
                 //si el ultimo ha sido visitado quiere decir que todos han sido visitados
                 if (adyacentesVisitadas == grafo.nodes[casillaActual].Successors.Count)
                 {
-                    Debug.Log("Todas las bifurcaciones visitadas");
+                    //Debug.Log("Todas las bifurcaciones visitadas");
                     //quitamos esta casilla del camino
                     caminoRecorrido.Pop();
                     //movemos al jugador a la casilla anterior
                     Index ind = caminoRecorrido.Peek();
-                    Debug.Log("Siguiente Casilla: " + ind.x + " , " + ind.y);
+                    //Debug.Log("Siguiente Casilla: " + ind.x + " , " + ind.y);
                     Casilla casilla = LaberintoManager.instance.getCasillaByIndex(ind.x, ind.y);
                     //calculamos la direccion en la que se tiene que mover
                     Vector3 aux = new Vector3(casilla.gameObject.transform.position.x, transform.position.y, casilla.gameObject.transform.position.z);
@@ -322,14 +334,17 @@ namespace luaberinto
         //sigue el camino para hacer una mision
         public void sigueCamino()
         {
-            if (camino != null && camino.Count != 0)
+            if (camino != null && camino.Count > 0)
             {
                 //calculamos la direccion en la que se tiene que mover
                 Index obj = camino.Pop();
+                Debug.Log("Siguiente Casilla camino: " + obj.x + " , " + obj.y);
                 Vector3 aux = new Vector3(LaberintoManager.instance.getCasillaByIndex(obj.x, obj.y).transform.position.x, transform.position.y, LaberintoManager.instance.getCasillaByIndex(obj.x, obj.y).transform.position.z);
-
-
                 dir = (aux - transform.position).normalized;
+            }
+            else
+            {
+                estado_ = estados.Explorando;
             }
         }
     }
