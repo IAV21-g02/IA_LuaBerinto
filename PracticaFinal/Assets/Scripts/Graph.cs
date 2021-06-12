@@ -16,16 +16,9 @@ namespace luaberinto
         {
             InitGraph(laberinto);
 
-            nodes[new Index(0, 0)].visited = true;
+          
 
-            //TO ERASE:
-            dijkstra a = new dijkstra(this, new Index(0, 0), new Index(5, 5));
-            Stack<Index> camino = a.devuelveCamino();
-
-            foreach(Index casilla in camino)
-            {
-                LaberintoManager.instance.getCasillaByIndex(casilla.x, casilla.y).gameObject.GetComponent<Renderer>().material.color = Color.magenta;
-            }
+           
         }
 
         //Inicialización del grafo segun el laberinto generado proceduralmente

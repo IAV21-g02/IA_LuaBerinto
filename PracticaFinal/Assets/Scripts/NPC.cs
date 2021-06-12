@@ -9,6 +9,7 @@ namespace luaberinto
     {
         //  Misión que este NPC ofrece
         private Mision miMision;
+        private Index miPos;
 
         public void setMision(Mision mision_)
         {
@@ -33,7 +34,14 @@ namespace luaberinto
                 Debug.Log("NPC");
                 other.GetComponent<Jugador>().actualizaConocimientos(this);
             }
+            if (other.CompareTag("Casilla"))
+            {
+                miPos = other.GetComponent<Casilla>().getIndex();
+                
+            }
         }
+
+        public Index GetPos() { return miPos; }
     }
 
 }

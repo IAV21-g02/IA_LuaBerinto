@@ -26,6 +26,11 @@ namespace luaberinto
         {
             return objeto;
         }
+
+        public  NPC getNPC()
+        {
+            return npc;
+        }
     }
 
 }

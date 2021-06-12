@@ -22,7 +22,14 @@ namespace luaberinto
                 //actualizamos la casilla
                 player.casillaActual = parent.myIndex;
                 //cambiamos la direccion del jugador
-                player.mueveSiguienteCasilla();
+                if (other.gameObject.GetComponent<Jugador>().estado_ == estados.Explorando)
+                {
+                    player.mueveSiguienteCasilla();
+                }
+                else
+                {
+                    player.sigueCamino();
+                }
                 //marcamos la casilla como visitada
                 LaberintoManager.instance.getGrafoLaberinto().nodes[parent.myIndex].visited = true;
             }

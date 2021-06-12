@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 namespace luaberinto
 {
+    public enum estados { EnMision, Explorando, Terminado }
 
     public class Jugador : MonoBehaviour
     {
@@ -15,8 +16,14 @@ namespace luaberinto
         private List<ObjetivoBehaviour> objetosConocidos;
         //  Lista de misiones que tiene actualmente el jugador
         private List<Mision> misionesActivas;
+        //mision que estoy realizando
+        private Mision misionActual;
         //  Lista de NPC que conozco
         private List<NPC> npcConocidos;
+        //camino actual a recorrer
+        Stack<Index> camino = null;
+        //estado del jugador
+        public estados estado_ = estados.Explorando;
 
         //para el movimiento del jugador
         //Vector2 derecha, izquierda, frente, atras, miDireccion;
@@ -77,13 +84,17 @@ namespace luaberinto
 
         public void Update()
         {
+            Debug.Log(estado_);
+
             //movemos al jugador
             transform.Translate(dir * Time.deltaTime);
+
+            //UI
             if (Input.GetKeyDown(KeyCode.Space))
                 jugadorCam.enabled = false;
             else if (Input.GetKeyUp(KeyCode.Space))
                 jugadorCam.enabled = true;
-            textNPC.text = "NPCs :" + npcConocidos.Count + "/3"; 
+            textNPC.text = "NPCs :" + npcConocidos.Count + "/3";
             textObj.text = "objetivos :" + objetosConocidos.Count + "/3";
             textActOj.text = "actual obj :" + objetoEnBolsillo;
 
@@ -94,58 +105,77 @@ namespace luaberinto
         //  Agrega un objeto a la lista de objetos que conozco
         public void actualizaConocimientos(ObjetivoBehaviour obj)
         {
+            //si no conocemos el objeto
             if (!objetosConocidos.Contains(obj))
             {
+                //lo añadimos a la lista
                 objetosConocidos.Add(obj);
+                ActualizaMision();
+            }
+            // si tengo una mision actual y se trata del objeto que estoy buscando
+            if (misionActual != null && misionActual.getObjeto() == obj)
+            {
+                agregaObjetoAlBolsillo(obj);
+                dijkstra a = new dijkstra(LaberintoManager.instance.getGrafoLaberinto(), casillaActual, misionActual.getNPC().GetPos());
+                camino = a.devuelveCamino();
+
             }
 
-            bool encontrado = false;
-            int cont = 0;
-            while (npcConocidos.Count > 0 && !encontrado && cont < npcConocidos.Count)
-            {
-                if (npcConocidos[cont].getMision().getObjeto().Equals(obj))
-                {
-                    if (objetoEnBolsillo == null)
-                    {
-                        objetoEnBolsillo = obj;
-                        obj.objetoRecogido();
-                    }
-                    else
-                    {
-                        cambiaObjetoDelBolsillo(obj);
-                    }
-                    //TO ERASE
-                    //GetComponent<NavMeshAgent>().SetDestination(npcConocidos[cont].transform.position);
-                    encontrado = true;
-                }
-                else cont++;
-            }
 
-            if (objetoEnBolsillo == null)
-            {
-                objetoEnBolsillo = obj;
-                obj.objetoRecogido();
-            }
         }
+
 
         //  Agrega un npc a la lista de npc que conozco
         public void actualizaConocimientos(NPC npc)
         {
+            //si no esta en la lista(aun no lo conocemos)
             if (!npcConocidos.Contains(npc))
             {
+                //lo añadimos a la lista
                 npcConocidos.Add(npc);
-                if (objetoEnBolsillo != null && npc.getMision().getObjeto().Equals(objetoEnBolsillo))
+            }
+            else//si ya lo conociamos
+            {
+                //si es nuestra mision actual y tenemos el objeto se lo damos
+                if (misionActual.getNPC() == npc && objetoEnBolsillo == misionActual.getObjeto())
                 {
                     npc.darObjeto();
-                    //TO DO mover hacia el objetivo
+                    misionActual.misionCompleta = true;
+                    misionActual = null;
 
                 }
-                else if (objetosConocidos.Contains(npc.getMision().getObjeto()))
+
+            }
+            ActualizaMision();
+        }
+
+        //actualizamos la misionActual y buscamos el objeto correspondiente a esa mision
+        private void ActualizaMision()
+        {
+            foreach (NPC npc in npcConocidos)
+            {
+                //si la mision no esta ya completa
+                if (!npc.getMision().misionCompleta)
                 {
-                    //GetComponent<NavMeshAgent>().SetDestination(npc.getMision().getObjeto().transform.position);
-                    //TO DO mover hacia el objetivo
+                    //conozco el objeto de la mision
+                    if (objetosConocidos.Contains(npc.getMision().getObjeto()) && misionActual == null)
+                    {
+                        misionActual = npc.getMision();
+                        dijkstra a = new dijkstra(LaberintoManager.instance.getGrafoLaberinto(), casillaActual, npc.getMision().getObjeto().GetPos());
+                        camino = a.devuelveCamino();
+                        estado_ = estados.EnMision;
+                        return;
+                    }
+
+
                 }
             }
+            if (estado_ != estados.Explorando)
+            {
+                mueveSiguienteCasilla();
+
+            }
+            estado_ = estados.Explorando;
         }
 
         //  Agrega un objeto al bolsillo
@@ -286,6 +316,20 @@ namespace luaberinto
                     dir = (aux - transform.position).normalized;
                 }
 
+            }
+        }
+
+        //sigue el camino para hacer una mision
+        public void sigueCamino()
+        {
+            if (camino != null && camino.Count != 0)
+            {
+                //calculamos la direccion en la que se tiene que mover
+                Index obj = camino.Pop();
+                Vector3 aux = new Vector3(LaberintoManager.instance.getCasillaByIndex(obj.x, obj.y).transform.position.x, transform.position.y, LaberintoManager.instance.getCasillaByIndex(obj.x, obj.y).transform.position.z);
+
+
+                dir = (aux - transform.position).normalized;
             }
         }
     }
