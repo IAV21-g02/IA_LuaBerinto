@@ -36,7 +36,7 @@ namespace luaberinto
         Vector3 dir;
 
         public Index casillaActual { get; set; }
-
+        private Index misionObjIndex;
         // Cámara asociada al jugador
         private Camera jugadorCam;
         //  Cuerpo del modelo del jugador
@@ -139,6 +139,7 @@ namespace luaberinto
             {
                 //lo añadimos a la lista
                 npcConocidos.Add(npc);
+
             }
             else//si ya lo conociamos
             {
@@ -148,12 +149,25 @@ namespace luaberinto
                     npc.darObjeto();
                     misionActual.misionCompleta = true;
                     misionActual = null;
-                    mueveSiguienteCasilla();
 
+                    //Cogemos el indice de la casilla del player
+                    casillaActual = npc.GetPos();
+                    Graph grafo = LaberintoManager.instance.getGrafoLaberinto();
+
+                    grafo.nodes[casillaActual].visited = false;
+                    if(grafo.nodes[casillaActual].Successors.Count > 2)
+                    {
+                        Cruces.Pop();
+                    }
+                    caminoRecorrido.Pop();
+                    ActualizaMision();
+                    
+                    //mueveDesdeCasillaNormal(LaberintoManager.instance.getGrafoLaberinto());
+                    //LaberintoManager.instance.getGrafoLaberinto().nodes[casillaActual].visited = true;
                 }
 
             }
-            ActualizaMision();
+            if(misionActual == null) ActualizaMision();
         }
 
         //actualizamos la misionActual y buscamos el objeto correspondiente a esa mision
@@ -184,9 +198,8 @@ namespace luaberinto
             if (estado_ != estados.Explorando)
             {
                 mueveSiguienteCasilla();
-
+                estado_ = estados.Explorando;
             }
-            estado_ = estados.Explorando;
         }
 
         //  Agrega un objeto al bolsillo
@@ -219,15 +232,14 @@ namespace luaberinto
 
         public void mueveSiguienteCasilla()
         {
+            Debug.Log("Casilla actual: " + casillaActual.x + " , "+casillaActual.y);
             Graph grafo = LaberintoManager.instance.getGrafoLaberinto();
             //comprobamos si estamos en una interseccion
             if (grafo.nodes[casillaActual].Successors.Count > 2)//estamos en una interseccion
             {
-                //Debug.Log("Interseccion");
                 //no esta visitada todavia
                 if (!grafo.nodes[casillaActual].visited)
                 {
-                    //Debug.Log("Primera vez que llegamos a la intersección: " + casillaActual.x + " , " + casillaActual.y);
                     //metemos esa casilla en la pila
                     Cruces.Push(casillaActual);
                     caminoRecorrido.Push(casillaActual);
@@ -239,35 +251,16 @@ namespace luaberinto
                     //elegimos el primer camino no visitado
                     if (!grafo.nodes[casillaActual].Successors[i].visited)
                     {
-                        //cogemos la nueva casilla a la que se tiene que mover
-                        Index ind = grafo.nodes[casillaActual].Successors[i].id;
-                        Casilla casilla = LaberintoManager.instance.getCasillaByIndex(ind.x, ind.y);
-                        //Debug.Log("Siguiente Casilla: " + ind.x + " , " + ind.y);
-
-                        //calculamos la direccion en la que se tiene que mover
-                        Vector3 aux = new Vector3(casilla.gameObject.transform.position.x, transform.position.y, casilla.gameObject.transform.position.z);
-
-                        dir = (aux - transform.position).normalized;
+                        eligeDireccionMover(grafo,i);
                         break;
-
                     }
                     else adyacentesVisitadas++;
                 }
                 //si el ultimo ha sido visitado quiere decir que todos han sido visitados
                 if (adyacentesVisitadas == grafo.nodes[casillaActual].Successors.Count)
                 {
-                    //Debug.Log("Todas las bifurcaciones visitadas");
-                    //quitamos esta casilla del camino
-                    caminoRecorrido.Pop();
-                    //movemos al jugador a la casilla anterior
-                    Index ind = caminoRecorrido.Peek();
-                    //Debug.Log("Siguiente Casilla: " + ind.x + " , " + ind.y);
-                    Casilla casilla = LaberintoManager.instance.getCasillaByIndex(ind.x, ind.y);
-                    //calculamos la direccion en la que se tiene que mover
-                    Vector3 aux = new Vector3(casilla.gameObject.transform.position.x, transform.position.y, casilla.gameObject.transform.position.z);
-
-                    dir = (aux - transform.position).normalized;
-
+                    //Quitamos esa casilla del camino
+                    quitaCasillaCamino();
                     //eliminamos el cruce de la lista
                     Cruces.Pop();
                 }
@@ -279,55 +272,69 @@ namespace luaberinto
                 {
                     //la añadimos al camino
                     caminoRecorrido.Push(casillaActual);
-                    //avanzamos hacia delante
-                    int adyacentesVisitadas = 0;
-                    for (int i = 0; i < grafo.nodes[casillaActual].Successors.Count; i++)
-                    {
-                        //elegimos el camino no visitado
-                        if (!grafo.nodes[casillaActual].Successors[i].visited)
-                        {
-                            //cogemos la nueva casilla a la que se tiene que mover
-                            Index ind = grafo.nodes[casillaActual].Successors[i].id;
-                            Casilla casilla = LaberintoManager.instance.getCasillaByIndex(ind.x, ind.y);
-
-                            //calculamos la direccion en la que se tiene que mover
-                            Vector3 aux = new Vector3(casilla.gameObject.transform.position.x, transform.position.y, casilla.gameObject.transform.position.z);
-
-                            dir = (aux - transform.position).normalized;
-                            break;
-                        }
-                        else adyacentesVisitadas++;
-                    }
-
-                    //Si no hemos entrado en ninguna de los adyacentes quiere decir que nos encontramos en un callejon
-                    //sin salida
-                    if (adyacentesVisitadas == grafo.nodes[casillaActual].Successors.Count)
-                    {
-                        caminoRecorrido.Pop();
-                        //movemos al jugador a la casilla anterior
-                        Index ind = caminoRecorrido.Peek();
-                        Casilla casilla = LaberintoManager.instance.getCasillaByIndex(ind.x, ind.y);
-
-                        //calculamos la direccion en la que se tiene que mover
-                        Vector3 aux = new Vector3(casilla.gameObject.transform.position.x, transform.position.y, casilla.gameObject.transform.position.z);
-
-                        dir = (aux - transform.position).normalized;
-                    }
+                    mueveDesdeCasillaNormal(grafo);
                 }
                 else//si la casilla si esta visitada
                 {
                     //quitamos esta casilla del camino
-                    caminoRecorrido.Pop();
-                    //movemos al jugador a la casilla anterior
-                    Index ind = caminoRecorrido.Peek();
-                    Casilla casilla = LaberintoManager.instance.getCasillaByIndex(ind.x, ind.y);
-
-                    //calculamos la direccion en la que se tiene que mover
-                    Vector3 aux = new Vector3(casilla.gameObject.transform.position.x, transform.position.y, casilla.gameObject.transform.position.z);
-
-                    dir = (aux - transform.position).normalized;
+                    quitaCasillaCamino();
                 }
 
+            }
+        }
+
+        private void eligeDireccionMover(Graph grafo, int i)
+        {
+            //cogemos la nueva casilla a la que se tiene que mover
+            Index ind = grafo.nodes[casillaActual].Successors[i].id;
+            Casilla casilla = LaberintoManager.instance.getCasillaByIndex(ind.x, ind.y);
+            //calculamos la direccion en la que se tiene que mover
+            Vector3 aux = new Vector3(casilla.gameObject.transform.position.x, transform.position.y, casilla.gameObject.transform.position.z);
+
+            dir = (aux - transform.position).normalized;
+        }
+
+        private void quitaCasillaCamino()
+        {
+            //quitamos esta casilla del camino
+            if (caminoRecorrido.Count > 0)
+            {
+                caminoRecorrido.Pop();
+                //movemos al jugador a la casilla anterior
+                if (caminoRecorrido.Count > 0)
+                {
+                    Index ind = caminoRecorrido.Peek();
+                    Casilla casilla = LaberintoManager.instance.getCasillaByIndex(ind.x, ind.y);
+                    //calculamos la direccion en la que se tiene que mover
+                    Vector3 aux = new Vector3(casilla.gameObject.transform.position.x, transform.position.y, casilla.gameObject.transform.position.z);
+                    dir = (aux - transform.position).normalized;
+                }
+                else dir = new Vector3(0, 0, 0);
+            }
+            else dir = new Vector3(0, 0, 0);
+        }
+
+        private void mueveDesdeCasillaNormal(Graph grafo)
+        {
+            //avanzamos hacia delante
+            int adyacentesVisitadas = 0;
+            for (int i = 0; i < grafo.nodes[casillaActual].Successors.Count; i++)
+            {
+                //elegimos el camino no visitado
+                if (!grafo.nodes[casillaActual].Successors[i].visited)
+                {
+                    eligeDireccionMover(grafo, i);
+                    break;
+                }
+                else adyacentesVisitadas++;
+            }
+
+            //Si no hemos entrado en ninguna de los adyacentes quiere decir que nos encontramos en un callejon
+            //sin salida
+            if (adyacentesVisitadas == grafo.nodes[casillaActual].Successors.Count)
+            {
+                //quitamos esta casilla del camino
+                quitaCasillaCamino();
             }
         }
 
@@ -338,7 +345,6 @@ namespace luaberinto
             {
                 //calculamos la direccion en la que se tiene que mover
                 Index obj = camino.Pop();
-                Debug.Log("Siguiente Casilla camino: " + obj.x + " , " + obj.y);
                 Vector3 aux = new Vector3(LaberintoManager.instance.getCasillaByIndex(obj.x, obj.y).transform.position.x, transform.position.y, LaberintoManager.instance.getCasillaByIndex(obj.x, obj.y).transform.position.z);
                 dir = (aux - transform.position).normalized;
             }

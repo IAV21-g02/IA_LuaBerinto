@@ -229,7 +229,7 @@ namespace luaberinto
         //  Determina si las coordenadas dadas son válidas para casillas
         private bool casillaValida(int indX, int indY)
         {
-            if (indX >= 0 && indY >= 0 && indX < columnas && indY < filas)
+            if (indX >= 0 && indY >= 0 && indX < filas && indY < columnas)
                 return true;
             else return false;
         }
@@ -237,7 +237,7 @@ namespace luaberinto
         //  Determina si las coordenadas dadas son válidas para casillas
         private bool casillaValida(Index index)
         {
-            if (index.x >= 0 && index.y >= 0 && index.x < columnas && index.y < filas)
+            if (index.x >= 0 && index.y >= 0 && index.x < filas && index.y < columnas)
                 return true;
             else return false;
         }
@@ -450,8 +450,8 @@ namespace luaberinto
         private GameObject Halton2d(float baseX, float baseY, float index, GameObject prefab)
         {
             //Ajuste para pasar del rango [0,1] a las coordenadas reales del suelo
-            float posX = initPos.x + (adjustHaltonToGrid(Halton(baseX, index), columnas) * limX);
-            float posZ = initPos.z + (adjustHaltonToGrid(Halton(baseY, index), filas) * limZ);
+            float posX = initPos.x + (adjustHaltonToGrid(Halton(baseX, index), filas) * limX);
+            float posZ = initPos.z + (adjustHaltonToGrid(Halton(baseY, index), columnas) * limZ);
 
             //Creamos el objeto que nos servirá como prefab
             return Instantiate(prefab, new Vector3(posX, 0.5f, posZ), Quaternion.identity, transform).gameObject;
