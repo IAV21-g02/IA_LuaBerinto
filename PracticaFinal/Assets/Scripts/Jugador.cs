@@ -46,6 +46,9 @@ namespace luaberinto
         private Text textObj;
         private Text textActOj;
 
+        //Velocidad del jugador al recorrer el laberinto
+        private float velocidad;
+
         private void Awake()
         {
             caminoRecorrido = new Stack<Index>();
@@ -63,6 +66,7 @@ namespace luaberinto
             jugadorCam = GetComponentInChildren<Camera>();
             Camera.main.transform.parent = transform;
             cuerpo = gameObject.transform.GetChild(1).gameObject;
+            velocidad = GameManager.instancia.velocidad;
 
             var t = Canvas.FindObjectsOfType<Text>();
             foreach (Text txt in t)
@@ -85,15 +89,15 @@ namespace luaberinto
         public void Update()
         {
             //movemos al jugador
-            transform.Translate(dir * Time.deltaTime);
+            transform.Translate(dir * Time.deltaTime * velocidad);
 
             //UI
             if (Input.GetKeyDown(KeyCode.Space))
                 jugadorCam.enabled = false;
             else if (Input.GetKeyUp(KeyCode.Space))
                 jugadorCam.enabled = true;
-            textNPC.text = "NPCs :" + npcConocidos.Count + "/3";
-            textObj.text = "objetivos :" + objetosConocidos.Count + "/3";
+            textNPC.text = "NPCs :" + npcConocidos.Count + "/" + GameManager.instancia.ent;
+            textObj.text = "objetivos :" + objetosConocidos.Count + "/" + GameManager.instancia.ent;
             textActOj.text = "estado actual:" + estado_.ToString();
 
             //  giros muy hardos TODO suavizar?
@@ -161,7 +165,7 @@ namespace luaberinto
                         {
                             LaberintoManager.instance.getCasillaByIndex(c.x, c.y).gameObject.GetComponent<Renderer>().material.color = Color.magenta;
                         }
-                        
+
                     }
 
                 }

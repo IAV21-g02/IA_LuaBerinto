@@ -82,17 +82,33 @@ namespace luaberinto
 
         void Start()
         {
-            //Inicializacion de matrices y listas
-            casillas = new Casilla[filas, columnas];
-            surfaces = new List<NavMeshSurface>();
-            obstacles = new List<NavMeshObstacle>();
-            //objetivos = new List<ObjetivoBehaviour>();
+            if (GameManager.instancia)
+            {
+                filas = GameManager.instancia.filas;
+                columnas = GameManager.instancia.columnas;
+                
+                if (GameManager.instancia.seed != GameManager.instancia.nonSeed)
+                {
+                    //UnityEngine.Random.seed = GameManager.instancia.seed;
+                    UnityEngine.Random.InitState((int)GameManager.instancia.seed);
+                }
+                //Inicializacion de matrices y listas
+                casillas = new Casilla[filas, columnas];
+                surfaces = new List<NavMeshSurface>();
+                obstacles = new List<NavMeshObstacle>();
+                //objetivos = new List<ObjetivoBehaviour>();
 
-            //Inicializacion de variables necesarias para la secuencia de Halton
-            limX = (filas * getAnchuraCasilla());
-            limZ = (columnas * getProfundidadCasilla());
+                //Inicializacion de variables necesarias para la secuencia de Halton
+                limX = (filas * getAnchuraCasilla());
+                limZ = (columnas * getProfundidadCasilla());
 
-            ConstruyeLaberinto();
+                ConstruyeLaberinto();
+            }
+            else
+            {
+                throw new Exception("No se ha inicializado el gameManager");
+            }
+
         }
 
         //  Devuelve la instancia de este singleton
@@ -487,7 +503,7 @@ namespace luaberinto
 
         private void creaMisiones()
         {
-            int num = npcs.Count;
+            int num = GameManager.instancia.ent;
             for (int i = 0; i < num; i++)
             {
                 int aux = UnityEngine.Random.Range(0, npcs.Count);

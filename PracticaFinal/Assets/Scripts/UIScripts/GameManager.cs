@@ -8,9 +8,11 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instancia;
 
+    public float nonSeed = -544.6f; 
     public int filas { get; set; }
     public int columnas { get; set; }
     public float seed { get; set; }
+    public float velocidad { get; set; }
     public int ent { get; set; }
 
     private void Awake()
@@ -20,6 +22,8 @@ public class GameManager : MonoBehaviour
             instancia = this;
             instancia.filas = 15;
             instancia.columnas = 15;
+            instancia.velocidad = 1.0f;
+            instancia.ent = 3;
         }
         else
         {
@@ -40,7 +44,7 @@ public class GameManager : MonoBehaviour
             switch (inF.name)
             {
                 case "SeedCampo":
-                    float num = -544.6f;
+                    float num = nonSeed;
                     if (inF.text == "" || float.TryParse(inF.text, out num))
                     {
                         seed = num;
@@ -104,5 +108,28 @@ public class GameManager : MonoBehaviour
     public void actualizaSlider(GameObject gm)
     {
         ent = (int)gm.GetComponent<Slider>().value;
+    }
+
+    public void actualizaVelocidad(GameObject gm)
+    {
+        velocidad = gm.GetComponent<Slider>().value;
+        Debug.Log(gm.GetComponent<Slider>().value);
+    }
+
+    public void actualizaVentana(GameObject gm)
+    {
+        if (gm.GetComponent<Toggle>().isOn)
+        {
+            Screen.SetResolution(1200, 600, true);
+        }
+        else
+        {
+            Screen.SetResolution(800, 600, false);
+        }
+    }
+
+    public void cierraApp()
+    {
+        Application.Quit();
     }
 }
