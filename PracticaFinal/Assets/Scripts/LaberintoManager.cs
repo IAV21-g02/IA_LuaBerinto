@@ -47,8 +47,6 @@ namespace luaberinto
         private Graph grafoLaberinto;
         //  Lista de npcs disponibles 
         public List<GameObject> npcs;
-
-
       
 
         [Tooltip("Filas que componen este laberinto")]
@@ -188,19 +186,6 @@ namespace luaberinto
            
         }
 
-        //  Instancia los objetivos sobre el laberinto usando el algoritmo de Halton
-        private void instanciaObjetivos()
-        {
-            int cont = 0;
-
-            while (cont < numPremios)
-            {
-                //Lo añadimos a la lista de objetivos
-                objetivos.Add(Halton2d(baseX, baseY, cont + 1, objetivoPrefab.gameObject).GetComponent<ObjetivoBehaviour>());
-                cont++;
-            }
-        }
-
         //  Devuelve los index dentro de casillas de una casilla
         public luaberinto.Index getIndexByCasilla(Casilla actCasilla)
         {
@@ -211,16 +196,16 @@ namespace luaberinto
             {
                 if (casillas[indx, indy].Equals(actCasilla))
                     encontrado = true;
-                else if (indx < columnas)
+                else if (indx < filas)
                 {
                     indx++;
                 }
-                else if (indy < filas)
+                else if (indy < columnas)
                 {
                     indy++;
                 }
             }
-            while (!encontrado && (indx < columnas || indy < filas));
+            while (!encontrado && (indx < filas || indy < columnas));
             if (!encontrado) return new Index(-1, -1);
             return new Index(indx, indy);
         }
@@ -316,8 +301,6 @@ namespace luaberinto
                 Index nextCasillaInd = nextCasilla.getIndex();
                 if (!visitado[nextCasillaInd.x, nextCasillaInd.y])
                 {
-                    //Debug.Log("[ " + nextCasillaInd.x + "," + nextCasillaInd.y + "]");
-                    //nextCasilla.GetComponent<Renderer>().material.color = Color.magenta;
                     quitaMuro(casilla, nextCasilla, getOrientacionEntreCasillas(casilla, nextCasilla));
                     CreaCamino(nextCasilla, visitado);
                 }

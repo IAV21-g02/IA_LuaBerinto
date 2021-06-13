@@ -36,7 +36,7 @@ namespace luaberinto
         Vector3 dir;
 
         public Index casillaActual { get; set; }
-        private Index misionObjIndex;
+        private Index misionObjIndex = new Index(-1, -1);
         // Cámara asociada al jugador
         private Camera jugadorCam;
         //  Cuerpo del modelo del jugador
@@ -84,7 +84,6 @@ namespace luaberinto
 
         public void Update()
         {
-
             //movemos al jugador
             transform.Translate(dir * Time.deltaTime);
 
@@ -110,7 +109,11 @@ namespace luaberinto
                 //lo añadimos a la lista
                 Debug.Log("Objeto");
                 objetosConocidos.Add(obj);
-                ActualizaMision();
+
+                if (misionActual == null)
+                {
+                    ActualizaMision();
+                }
             }
             // si tengo una mision actual y se trata del objeto que estoy buscando
             if (misionActual != null && misionActual.getObjeto() == obj)
@@ -120,7 +123,7 @@ namespace luaberinto
                 dijkstra a = new dijkstra(LaberintoManager.instance.getGrafoLaberinto(), casillaActual, misionActual.getNPC().GetPos());
                 camino = a.devuelveCamino();
 
-                foreach( Index c in camino)
+                foreach (Index c in camino)
                 {
                     LaberintoManager.instance.getCasillaByIndex(c.x, c.y).gameObject.GetComponent<Renderer>().material.color = Color.magenta;
                 }
@@ -135,44 +138,44 @@ namespace luaberinto
         public void actualizaConocimientos(NPC npc)
         {
             //si no esta en la lista(aun no lo conocemos)
-            if (!npcConocidos.Contains(npc))
-            {
-                //lo añadimos a la lista
-                npcConocidos.Add(npc);
-
-            }
+            if (!npcConocidos.Contains(npc)) npcConocidos.Add(npc);
             else//si ya lo conociamos
             {
                 //si es nuestra mision actual y tenemos el objeto se lo damos
                 if (misionActual != null && misionActual.getNPC() == npc && objetoEnBolsillo == misionActual.getObjeto())
                 {
+                    //Entregamos objeto
                     npc.darObjeto();
+                    //Marcamos la mision como completada y nos quedamos sin mision activa
                     misionActual.misionCompleta = true;
-                    misionActual = null;
 
                     //Cogemos el indice de la casilla del player
                     casillaActual = npc.GetPos();
                     Graph grafo = LaberintoManager.instance.getGrafoLaberinto();
 
-                    grafo.nodes[casillaActual].visited = false;
-                    if(grafo.nodes[casillaActual].Successors.Count > 2)
+                    if (!misionObjIndex.Equals(casillaActual)) //Nos encontramos donde el npc
                     {
-                        Cruces.Pop();
+                        dijkstra a = new dijkstra(LaberintoManager.instance.getGrafoLaberinto(), casillaActual, misionObjIndex);
+                        camino = a.devuelveCamino();
+                        foreach (Index c in camino)
+                        {
+                            LaberintoManager.instance.getCasillaByIndex(c.x, c.y).gameObject.GetComponent<Renderer>().material.color = Color.magenta;
+                        }
+                        
                     }
-                    caminoRecorrido.Pop();
-                    ActualizaMision();
-                    
-                    //mueveDesdeCasillaNormal(LaberintoManager.instance.getGrafoLaberinto());
-                    //LaberintoManager.instance.getGrafoLaberinto().nodes[casillaActual].visited = true;
+
                 }
 
             }
-            if(misionActual == null) ActualizaMision();
+            //Para que si colisionamos con otros NPCs y no estamos haciendo una mision
+            //Actualicemos a ver si podemos hacer alguna otra.
+            if (misionActual == null) ActualizaMision();
         }
 
         //actualizamos la misionActual y buscamos el objeto correspondiente a esa mision
         private void ActualizaMision()
         {
+            misionObjIndex = new Index(-1, -1);
             foreach (NPC npc in npcConocidos)
             {
                 //si la mision no esta ya completa
@@ -189,6 +192,15 @@ namespace luaberinto
                             LaberintoManager.instance.getCasillaByIndex(c.x, c.y).gameObject.GetComponent<Renderer>().material.color = Color.magenta;
                         }
                         estado_ = estados.EnMision;
+
+                        List<Casilla> adyNPC = LaberintoManager.instance.
+                            getCasillasAdyacentes(LaberintoManager.instance.getCasillaByIndex(npc.GetPos().x, npc.GetPos().y));
+
+                        if (adyNPC.Contains(LaberintoManager.instance.getCasillaByIndex(casillaActual.x, casillaActual.y)))
+                        {
+                            misionObjIndex = npc.GetPos();
+                        }
+                        else misionObjIndex = npc.getMision().getObjeto().GetPos();
                         return;
                     }
 
@@ -232,7 +244,7 @@ namespace luaberinto
 
         public void mueveSiguienteCasilla()
         {
-            Debug.Log("Casilla actual: " + casillaActual.x + " , "+casillaActual.y);
+            Debug.Log("Casilla actual: " + casillaActual.x + " , " + casillaActual.y);
             Graph grafo = LaberintoManager.instance.getGrafoLaberinto();
             //comprobamos si estamos en una interseccion
             if (grafo.nodes[casillaActual].Successors.Count > 2)//estamos en una interseccion
@@ -251,7 +263,7 @@ namespace luaberinto
                     //elegimos el primer camino no visitado
                     if (!grafo.nodes[casillaActual].Successors[i].visited)
                     {
-                        eligeDireccionMover(grafo,i);
+                        eligeDireccionMover(grafo, i);
                         break;
                     }
                     else adyacentesVisitadas++;
@@ -350,7 +362,20 @@ namespace luaberinto
             }
             else
             {
+                camino = null;
+                misionActual = null;
                 estado_ = estados.Explorando;
+                Debug.Log("CASILLA A LA QUE DEBERIAMOS IR: " + misionObjIndex.x + " , " + misionObjIndex.y);
+                ActualizaMision();
+                Debug.Log("ESTADO POSTERIOR AL ACTUALIZA MISION: " + estado_.ToString());
+                Debug.Log("CASILLA EN LA QUE NOS ENCONTRAMOS: " + casillaActual.x + " , " + casillaActual.y);
+                Debug.Log("Visitada: " + LaberintoManager.instance.getGrafoLaberinto().nodes[casillaActual].visited);
+                Debug.Log("ULTIMA CASILLA DEL RECORRIDO: " + caminoRecorrido.Peek().x + " , " + caminoRecorrido.Peek().y);
+                Debug.Log("Visitada: " + LaberintoManager.instance.getGrafoLaberinto().nodes[caminoRecorrido.Peek()].visited);
+
+                //Porfa plz que sea esto
+                LaberintoManager.instance.getGrafoLaberinto().nodes[casillaActual].visited = false;
+                mueveSiguienteCasilla();
             }
         }
     }
