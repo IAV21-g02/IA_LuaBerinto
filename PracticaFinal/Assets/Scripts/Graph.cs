@@ -161,7 +161,7 @@ namespace luaberinto
             }
 
             //La distancia entre la casilla origen y ella misma es 0
-            distancias[ini.x * LaberintoManager.instance.columnas + ini.y] = 0;
+            distancias[ini.x * LaberintoManager.instance.filas + ini.y] = 0;
             //La añadimos a la cola de prioridad
             pq.Add(new Pair(ini, 0));
 
@@ -181,8 +181,8 @@ namespace luaberinto
         private void relajar(Node a, Node b)
         {
             //Calculamos la posición en el array de los nodos a y b (destino y origen respectivamente)
-            int destino = a.id.x * LaberintoManager.instance.columnas + a.id.y;
-            int origen = b.id.x * LaberintoManager.instance.columnas + b.id.y;
+            int destino = a.id.x * LaberintoManager.instance.filas + a.id.y;
+            int origen = b.id.x * LaberintoManager.instance.filas + b.id.y;
 
             //Si la distancia al destino que tenemos en este momento es mayor que la del origen mas 1 (puesto que son adyacentes)
             if (distancias[destino] > distancias[origen] + 1)
@@ -214,7 +214,7 @@ namespace luaberinto
                 camino.Push(fin);
                 while (!camino.Peek().Equals(ini))
                 {
-                    camino.Push(ulti[camino.Peek().x * LaberintoManager.instance.columnas + camino.Peek().y].id);
+                    camino.Push(ulti[camino.Peek().x * LaberintoManager.instance.filas + camino.Peek().y].id); //TO DO: REVISAR
                 }
 
             }
