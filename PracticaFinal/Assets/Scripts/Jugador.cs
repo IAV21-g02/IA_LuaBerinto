@@ -93,9 +93,9 @@ namespace luaberinto
 
             //UI
             if (Input.GetKeyDown(KeyCode.Space))
-                jugadorCam.enabled = false;
-            else if (Input.GetKeyUp(KeyCode.Space))
-                jugadorCam.enabled = true;
+                jugadorCam.enabled = !jugadorCam.enabled;
+            //else if (Input.GetKeyUp(KeyCode.Space))
+                //jugadorCam.enabled = true;
             textNPC.text = "NPCs :" + npcConocidos.Count + "/" + GameManager.instancia.ent;
             textObj.text = "objetivos :" + objetosConocidos.Count + "/" + GameManager.instancia.ent;
             textActOj.text = "estado actual:" + estado_.ToString();
@@ -124,6 +124,8 @@ namespace luaberinto
             {
                 Debug.Log("Volvemos al NPC");
                 agregaObjetoAlBolsillo(obj);
+
+                //Usamos dijkstra para volver al npc por el camino mas corto
                 dijkstra a = new dijkstra(LaberintoManager.instance.getGrafoLaberinto(), casillaActual, misionActual.getNPC().GetPos());
                 camino = a.devuelveCamino();
 
@@ -157,15 +159,18 @@ namespace luaberinto
                     casillaActual = npc.GetPos();
                     Graph grafo = LaberintoManager.instance.getGrafoLaberinto();
 
-                    if (!misionObjIndex.Equals(casillaActual)) //Nos encontramos donde el npc
+                    if (!misionObjIndex.Equals(casillaActual)) //Si no nos encontramos en la ultima casilla explorada
                     {
+                        //Hacemos dijkstra para calcular el camino mas corto a dicha casilla
                         dijkstra a = new dijkstra(LaberintoManager.instance.getGrafoLaberinto(), casillaActual, misionObjIndex);
                         camino = a.devuelveCamino();
+                        //Pintamos el camino
                         foreach (Index c in camino)
                         {
                             LaberintoManager.instance.getCasillaByIndex(c.x, c.y).gameObject.GetComponent<Renderer>().material.color = Color.magenta;
                         }
-
+                        //Empezamos a movernos segun dicho camino que hemos calculado
+                        sigueCamino();
                     }
 
                 }
@@ -188,18 +193,29 @@ namespace luaberinto
                     //conozco el objeto de la mision
                     if (objetosConocidos.Contains(npc.getMision().getObjeto()) && misionActual == null)
                     {
+                        //Actualizo mi misión actual
                         misionActual = npc.getMision();
+                        //calculo el camino desde mi casilla actual al objeto que tengo que recoger para hacer la mision
                         dijkstra a = new dijkstra(LaberintoManager.instance.getGrafoLaberinto(), casillaActual, npc.getMision().getObjeto().GetPos());
                         camino = a.devuelveCamino();
+
+                        //Pinto dicho camino
                         foreach (Index c in camino)
                         {
                             LaberintoManager.instance.getCasillaByIndex(c.x, c.y).gameObject.GetComponent<Renderer>().material.color = Color.magenta;
                         }
+
+                        //Cambio mi estado a en mision
                         estado_ = estados.EnMision;
 
+                        //Cogemos la lista de casillas adyacentes a la del NPC puesto que colisionamos antes con el
+                        //que con el trigger del centro de la casilla
                         List<Casilla> adyNPC = LaberintoManager.instance.
                             getCasillasAdyacentes(LaberintoManager.instance.getCasillaByIndex(npc.GetPos().x, npc.GetPos().y));
 
+                        //Compruebo cual es la casilla a la que tengo que volver cuando acabe la mision
+                        //es decir si tengo que volver a la casilla del npc o a la del objeto cuando acabe
+                        //esta mision para seguir explorando
                         if (adyNPC.Contains(LaberintoManager.instance.getCasillaByIndex(casillaActual.x, casillaActual.y)))
                         {
                             misionObjIndex = npc.GetPos();
@@ -366,18 +382,16 @@ namespace luaberinto
             }
             else
             {
+                //Cambiamos de estado a explorando si no hay mas camino
+                //Reseteamos a valores por defecto
                 camino = null;
                 misionActual = null;
                 estado_ = estados.Explorando;
-                Debug.Log("CASILLA A LA QUE DEBERIAMOS IR: " + misionObjIndex.x + " , " + misionObjIndex.y);
-                ActualizaMision();
-                Debug.Log("ESTADO POSTERIOR AL ACTUALIZA MISION: " + estado_.ToString());
-                Debug.Log("CASILLA EN LA QUE NOS ENCONTRAMOS: " + casillaActual.x + " , " + casillaActual.y);
-                Debug.Log("Visitada: " + LaberintoManager.instance.getGrafoLaberinto().nodes[casillaActual].visited);
-                Debug.Log("ULTIMA CASILLA DEL RECORRIDO: " + caminoRecorrido.Peek().x + " , " + caminoRecorrido.Peek().y);
-                Debug.Log("Visitada: " + LaberintoManager.instance.getGrafoLaberinto().nodes[caminoRecorrido.Peek()].visited);
 
-                //Porfa plz que sea esto
+                //Comprobamos si podemos realizar alguna mision
+                ActualizaMision();
+
+                //Continuamos explorando el laberinto
                 LaberintoManager.instance.getGrafoLaberinto().nodes[casillaActual].visited = false;
                 mueveSiguienteCasilla();
             }
