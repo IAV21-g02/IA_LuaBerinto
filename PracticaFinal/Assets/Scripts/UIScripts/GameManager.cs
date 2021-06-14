@@ -28,6 +28,7 @@ namespace luaberinto
                 instancia.velocidad = 1.0f;
                 instancia.ent = 3;
                 instancia.nonSeed = -544.6f;
+                instancia.seed = instancia.nonSeed ;
             }
             else
             {
@@ -48,7 +49,7 @@ namespace luaberinto
                 switch (inF.name)
                 {
                     case "SeedCampo":
-                        float num = nonSeed;
+                        float num = instancia.nonSeed;
                         if (inF.text == "" || float.TryParse(inF.text, out num))
                         {
                             instancia.seed = num;

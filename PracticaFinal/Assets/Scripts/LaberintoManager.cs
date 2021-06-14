@@ -89,9 +89,13 @@ namespace luaberinto
                 filas = GameManager.instancia.filas;
                 columnas = GameManager.instancia.columnas;
 
-                if (GameManager.instancia.seed != GameManager.instancia.nonSeed)
+                if (GameManager.instancia.seed == GameManager.instancia.nonSeed)
                 {
                     //UnityEngine.Random.seed = GameManager.instancia.seed;
+                    UnityEngine.Random.InitState((int)(System.DateTime.Now.Ticks * UnityEngine.Random.value));
+                }
+                else
+                {
                     UnityEngine.Random.InitState((int)GameManager.instancia.seed);
                 }
                 //Inicializacion de matrices y listas
@@ -101,8 +105,8 @@ namespace luaberinto
                 //objetivos = new List<ObjetivoBehaviour>();
 
                 //Inicializacion de variables necesarias para la secuencia de Halton
-                limX = (filas * getAnchuraCasilla());
-                limZ = (columnas * getProfundidadCasilla());
+                limX = (columnas * getAnchuraCasilla());
+                limZ = (filas * getProfundidadCasilla());
 
                 ConstruyeLaberinto();
             }
@@ -452,8 +456,8 @@ namespace luaberinto
         private GameObject Halton2d(float baseX, float baseY, float index, GameObject prefab)
         {
             //Ajuste para pasar del rango [0,1] a las coordenadas reales del suelo
-            float posX = initPos.x + (adjustHaltonToGrid(Halton(baseX, index), filas) * limX);
-            float posZ = initPos.z + (adjustHaltonToGrid(Halton(baseY, index), columnas) * limZ);
+            float posX = initPos.x + (adjustHaltonToGrid(Halton(baseX, index), columnas) * limX);
+            float posZ = initPos.z + (adjustHaltonToGrid(Halton(baseY, index), filas) * limZ);
 
             //Creamos el objeto que nos servirá como prefab
             return Instantiate(prefab, new Vector3(posX, 0.5f, posZ), Quaternion.identity, transform).gameObject;
