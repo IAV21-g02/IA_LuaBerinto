@@ -41,7 +41,7 @@ namespace luaberinto
                     player.setCasillaFinal(parent);
                     if (player.misionesCompletadas == GameManager.instancia.ent)
                     {
-                        player.estado_ = estados.Terminado;
+                        //player.estado_ = estados.Terminado;
                         PanelFinal.instance.activaPanelFinal();
                     }
                 }

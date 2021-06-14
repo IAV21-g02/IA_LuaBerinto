@@ -92,7 +92,7 @@ namespace luaberinto
                 if (GameManager.instancia.seed == GameManager.instancia.nonSeed)
                 {
                     //UnityEngine.Random.seed = GameManager.instancia.seed;
-                    UnityEngine.Random.InitState((int)(System.DateTime.Now.Ticks * UnityEngine.Random.value));
+                    UnityEngine.Random.InitState((int)(System.DateTime.Now.Second * UnityEngine.Random.value));
                 }
                 else
                 {
