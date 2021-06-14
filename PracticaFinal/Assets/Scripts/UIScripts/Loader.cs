@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public static class Loader
+namespace luaberinto
 {
-    public static string nombreScena;
-
-    public static void cargaNivel(string name)
+    public static class Loader
     {
-        nombreScena = name;
-        SceneManager.LoadScene("LoadingScene");
+        public static string nombreScena;
+
+        public static void cargaNivel(string name)
+        {
+            nombreScena = name;
+            SceneManager.LoadScene("LoadingScene");
+        }
     }
 }

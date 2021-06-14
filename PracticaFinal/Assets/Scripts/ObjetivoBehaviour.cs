@@ -4,19 +4,16 @@ using UnityEngine;
 
 namespace luaberinto
 {
-
     public class ObjetivoBehaviour : MonoBehaviour
     {
         private bool enBolsillo = false;
         private Index miPos;
 
-        // Start is called before the first frame update
         void Start()
         {
 
         }
 
-        // Update is called once per frame
         void Update()
         {
             if (!enBolsillo)
@@ -34,7 +31,7 @@ namespace luaberinto
             if (other.CompareTag("Casilla"))
             {
                 miPos = other.GetComponent<Casilla>().getIndex();
-
+                other.GetComponentInChildren<Light>().color = Color.green;
             }
         }
 

@@ -53,6 +53,7 @@ namespace luaberinto
         {
             murosActivos = new List<Muro>();
             objetivo = null;
+
         }
 
         public Muro getMuroPorOrientacion(int m)
@@ -129,7 +130,6 @@ namespace luaberinto
             if (collision.gameObject.CompareTag("Jugador"))
             {
                 GetComponentInChildren<Light>().enabled = true;  
-                //Debug.Log("Visitada casilla con indice: " + myIndex.x + " , " + myIndex.y);
             }
         }
 

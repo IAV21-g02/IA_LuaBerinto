@@ -47,7 +47,9 @@ namespace luaberinto
         private Graph grafoLaberinto;
         //  Lista de npcs disponibles 
         public List<GameObject> npcs;
-      
+        //  Casilla final
+        public Casilla casillaFinal;
+
 
         [Tooltip("Filas que componen este laberinto")]
         public int filas;
@@ -86,7 +88,7 @@ namespace luaberinto
             {
                 filas = GameManager.instancia.filas;
                 columnas = GameManager.instancia.columnas;
-                
+
                 if (GameManager.instancia.seed != GameManager.instancia.nonSeed)
                 {
                     //UnityEngine.Random.seed = GameManager.instancia.seed;
@@ -173,9 +175,8 @@ namespace luaberinto
             }
             asignaAccesos();
             GeneraLaberinto();
+            creaCasillaFinal();
         }
-
-
 
         //Asigna los accesos de los muros 
         private void asignaAccesos()
@@ -198,8 +199,8 @@ namespace luaberinto
             creaMisiones();
 
             grafoLaberinto = new Graph(casillas);
-   
-           
+
+
         }
 
         //  Devuelve los index dentro de casillas de una casilla
@@ -225,7 +226,6 @@ namespace luaberinto
             if (!encontrado) return new Index(-1, -1);
             return new Index(indx, indy);
         }
-
 
         //  Determina si las coordenadas dadas son válidas para casillas
         private bool casillaValida(int indX, int indY)
@@ -327,16 +327,19 @@ namespace luaberinto
             }
         }
 
+        //  Devuelve la anchura de la casilla
         public float getAnchuraCasilla()
         {
             return casillaPrefab.GetComponent<Renderer>().bounds.size.x;
         }
 
+        //  Devuelve la profunidad de la casilla
         public float getProfundidadCasilla()
         {
             return casillaPrefab.GetComponent<Renderer>().bounds.size.z;
         }
 
+        //  Devuelve una casilla de casillas en función del index
         public Casilla getCasillaByIndex(int indx, int indy)
         {
             if (casillaValida(indx, indy))
@@ -518,6 +521,23 @@ namespace luaberinto
                 npcs.Remove(npcs[aux]);
                 objetivos.Remove(objetivos[aux2]);
             }
+        }
+
+        private void creaCasillaFinal()
+        {
+            Index indexCasillaFinal = new Index(UnityEngine.Random.Range(1, filas), UnityEngine.Random.Range(1, columnas));
+            casillaFinal = getCasillaByIndex(indexCasillaFinal.x, indexCasillaFinal.y);
+            casillaFinal.GetComponentInChildren<Light>().color = Color.yellow;
+        }
+
+        public float getTotalTiempo()
+        {
+            return jugador.getTotalTiempo();
+        }
+
+        public Jugador getJugador()
+        {
+            return jugador;
         }
     }
 

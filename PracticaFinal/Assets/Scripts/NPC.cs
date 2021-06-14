@@ -35,13 +35,12 @@ namespace luaberinto
         {
             if (other.CompareTag("Jugador"))
             {
-                Debug.Log("NPC");
                 other.GetComponent<Jugador>().actualizaConocimientos(this);
             }
             if (other.CompareTag("Casilla"))
             {
                 miPos = other.GetComponent<Casilla>().getIndex();
-                
+                other.GetComponentInChildren<Light>().color = Color.blue;
             }
         }
 

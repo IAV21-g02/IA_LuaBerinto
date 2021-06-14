@@ -4,10 +4,13 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class initGameButton : MonoBehaviour
+namespace luaberinto
 {
-    public void playGame()
+    public class initGameButton : MonoBehaviour
     {
-        SceneManager.LoadScene("LoadingScene");
+        public void playGame()
+        {
+            SceneManager.LoadScene("LoadingScene");
+        }
     }
 }

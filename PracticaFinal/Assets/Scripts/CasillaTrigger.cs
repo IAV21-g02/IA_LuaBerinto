@@ -7,17 +7,19 @@ namespace luaberinto
     public class CasillaTrigger : MonoBehaviour
     {
         public Casilla parent;
+        private Renderer render;
 
-        private void Start()
-        {
-            if (parent == null) Debug.Log("ES NULL");
-        }
         private void OnTriggerEnter(Collider other)
         {
             if (other.gameObject.CompareTag("Jugador"))
             {
-                LaberintoManager.instance.getCasillaByIndex(parent.getIndex().x, parent.getIndex().y).gameObject.GetComponent<Renderer>().material.color = Color.white;
-                //Debug.Log("Llego a casilla: " + parent.myIndex.x + ", " + parent.myIndex.y);
+                if(render)
+                    render.material.color = Color.white;
+                else
+                {
+                    render = LaberintoManager.instance.getCasillaByIndex(parent.getIndex().x, parent.getIndex().y).gameObject.GetComponent<Renderer>();
+                    render.material.color = Color.white;
+                }
                 //cogemos el player
                 Jugador player = other.gameObject.GetComponent<Jugador>();
                 //actualizamos la casilla
@@ -33,6 +35,16 @@ namespace luaberinto
                 }
                 //marcamos la casilla como visitada
                 LaberintoManager.instance.getGrafoLaberinto().nodes[parent.myIndex].visited = true;
+                //  Si esta casilla es la final, se notifica al player
+                if (LaberintoManager.instance.casillaFinal.Equals(parent))
+                {
+                    player.setCasillaFinal(parent);
+                    if (player.misionesCompletadas == GameManager.instancia.ent)
+                    {
+                        player.estado_ = estados.Terminado;
+                        PanelFinal.instance.activaPanelFinal();
+                    }
+                }
             }
         }
     }

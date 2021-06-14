@@ -1,0 +1,8 @@
+- 	Vídeo pruebas y presentación
+- 	Documentación
+-	Imagenes para la documentación
+-	Luces para los objetos y npc
+-	Casilla de salida
+-	Build y tag
+-	Editar documento primordial
+-	Poner el link a la wiki desde el readme			/Donete
